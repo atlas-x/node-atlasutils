@@ -113,3 +113,28 @@ or to enable logging with the atlasutils logger
       logger: require('atlasutils/logger')
     });
 
+
+## Slack
+
+    let slack = require('atlasutils/slack');
+    slack.configure(...); // required
+    slack.send('general', 'hi guys!');
+
+#### Configure
+
+Slack must be configured with an API token. 
+
+    // require('atlasutils/slack').configure(...);
+    require('atlasutils').configureSlack({
+      enabled: true,
+      token: '' // api token
+    });
+
+#### Methods
+
+* `slack.send(room, message)` - returns a Promise and will send a message to the provided room (assuming the room exists, and your api token user has been invited to that room)
+
+* `slack.tagUser(username)` - will attempt to find the user by username or last name, and wrap it in tag syntax that the bot can recognize. 
+
+    console.log(slack.tagUser('jon')); // <@jon>
+

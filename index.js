@@ -12,6 +12,10 @@ exports.configureErrors = function(config) {
   require('./errors').configure(config);
 };
 
+exports.configureSlack = function(config) {
+  require('./slack').configure(config);
+};
+
 Object.defineProperties(exports, {
   'Logger': {
     enumerable: true,
@@ -32,5 +36,12 @@ Object.defineProperties(exports, {
     get: function() {
       return require('./middleware');
     }
-  }
+  },
+
+  'Slack': {
+    enumerable: true,
+    get: function() {
+      return require('./slack');
+    }
+  },
 });
