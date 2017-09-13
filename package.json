@@ -1,0 +1,22 @@
+{
+  "name": "atlasutils",
+  "version": "1.0.0",
+  "description": "Modules for use in Atlas node projects",
+  "main": "index.js",
+  "repository": "https://github.com/atlas-x/node-atlasutils",
+  "author": "Atlas Solutions <jon@atlas-x.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@slack/client": "^3.10.0",
+    "lodash": "^4.17.4",
+    "moment": "^2.18.1",
+    "winston": "^2.3.1",
+    "winston-daily-rotate-file": "^1.5.0"
+  },
+  "devDependencies": {
+    "jest": "^21.0.2"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/jest tests"
+  }
+}
