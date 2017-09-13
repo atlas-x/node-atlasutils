@@ -1,12 +1,26 @@
 # AtlasUtils
 
+#### Example minimal usage:  
+
+    let app = express();
+    let utils = require('atlasutils');
+    
+    utils.configureSlack({token: 'xxxxx'});
+    utils.configureLogger({
+      slack: utils.Slack,
+      channel: 'errors'
+    });
+    utils.configureMiddleware({ logger: utils.Logger });
+    
+    app.use(utils.Middleware);
+    
+      
+
 #### Example full usage:
 
     let app = express();
     let utils = require('atlasutils');
-    utils.configureSlack({
-      token: 'xxxxxxxx'
-    });
+    utils.configureSlack({token: 'xxxxxxxx'});
 
     utils.configureLogger({
       env: 'production',
@@ -169,7 +183,10 @@
 * `res.unauthorized(...)` - sends a `401` response
 * `res.forbidden(...)` - sends a `403` response
 * `res.notFound(...)` - sends a `404` response
-* `res.serverError(...)` - sends a `500` response
+* `res.serverError(...)` - sends a `500` response  
+* `res.created(obj)` - sends a 201 JSON response
+* `res.deleted(obj)` - sends a 204 JSON response  
+
 
 #### Configure  
 
@@ -206,8 +223,7 @@ Slack must be configured with an API token.
 
 * `slack.send(room, message)` - returns a Promise and will send a message to the provided room (assuming the room exists, and your api token user has been invited to that room)
 
-* `slack.tagUser(username)` - will attempt to find the user by username or last name, and wrap it in tag syntax that the bot can recognize. 
-
-    console.log(slack.tagUser('jon')); // <@jon>
+* `slack.tagUser(username)` - will attempt to find the user by username or last name, and wrap it in tag syntax that the bot can recognize.  
+  `console.log(slack.tagUser('jon')); // <@jon>`
 
 
