@@ -42,4 +42,26 @@ describe('Logger', () => {
     let logger = require('../logger')(__filename);
     expect(logger.winston.logger.transports.dailyRotateFile).toBeDefined();
   });
+
+  it(`should log to slack on error`, () => {
+    let slackmock = {
+      slack: {
+        enabled: true,
+      },
+      send: jest.fn()
+    };
+    require('../').configureLogger({
+      slack: {
+        instance: slackmock,
+        levels: ['debug'],
+        channel: 'errorsss'
+      }
+    });
+    let logger = require('../logger')(__filename);
+
+    logger.silly('test silly');
+    expect(slackmock.send).toHaveBeenCalledTimes(0);
+    logger.debug('test debug');
+    expect(slackmock.send).toHaveBeenCalledTimes(1);
+  });
 });

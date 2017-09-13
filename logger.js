@@ -15,7 +15,12 @@ const DEFAULT_WINSTON = {
   env: process.env.NODE_ENV || process.env.env || 'development',
   transports: [],
   verbose: process.env.VERBOSE || false,
-  cwd: process.cwd()
+  cwd: process.cwd(),
+  slack: {
+    instance: null,
+    levels: ['error', 'warn'],
+    channel: 'general'
+  }
 };
 
 const CUSTOM_COLORS = {
@@ -43,6 +48,7 @@ const DEFAULTS = {
 class Winston {
   constructor (config) {
     config = _.merge({}, DEFAULT_WINSTON, config);
+    this.config = config;
 
     CWD = config.cwd;
 
@@ -110,17 +116,19 @@ class Logger {
       this[level] = function () {
         let args = this.transform.apply(this, arguments);
         // log to slack if enabled
-        // if (level === 'error' && config.slack && config.slack.enabled && config.slack.onerror) {
-        //   let errormsg = `[${getTimestamp()}] ${config.env.toUpperCase()} ${level.toUpperCase()}`;
-        //   for (let ii = 0; ii < args.length - 1; ii++) {
-        //     let arg = args[ii];
-        //     if (_.isString(arg) && arg.match(/^stack\:/)) {
-        //       arg = arg.split('\n').slice(0, 3).join('\n');
-        //     }
-        //     errormsg += " " + (_.isString(arg) ? arg : JSON.stringify(arg));
-        //   }
-        //   // require('./slack').slack.send(config.slack.onerror, errormsg);
-        // }
+
+        let slackcfg = this.winston.config.slack;
+        let slack = slackcfg.instance;
+        if (slack && slack.slack.enabled && slackcfg.levels.includes(level)) {
+          let errormsg = `[${getTimestamp()}] ${this.winston.config.env.toUpperCase()} ${level.toUpperCase()}`;
+          for (let arg of args) {
+            if (_.isString(arg) && arg.match(/^stack\:/)) {
+              arg = arg.split('\n').slice(0, 4).join('\n');
+            }
+            errormsg += " " + (_.isString(arg) ? arg : JSON.stringify(arg));
+          }
+          slack.send(slackcfg.channel, errormsg);
+        }
 
         return this.winston.logger[level].apply(this.winston.logger, this.transform.apply(this, arguments));
       };

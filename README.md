@@ -1,5 +1,65 @@
 # AtlasUtils
 
+#### Example full usage:
+
+    let app = express();
+    let utils = require('atlasutils');
+    utils.configureSlack({
+      token: 'xxxxxxxx'
+    });
+
+    utils.configureLogger({
+      env: 'production',
+      transports: [{
+        type: 'DailyRotateFile',
+        properties: {
+          name: 'applog',
+          filename: './logs/applog.log',
+          level: 'info'
+        }
+      }, {
+        type: 'DailyRotateFile',
+        properties: {
+          name: 'apperror',
+          filename: './logs/apperror.log',
+          level: 'warn'
+        }
+      }],
+      slack: {
+        instance: utils.Slack,
+        channel: 'errors'
+      }
+    });
+
+    utils.configureErrors({
+      normalize: function(error, Errors) {
+        if (error instanceof DB.MySQLNotFound) {
+          return new Errors.NotFound(error.message);
+        }
+      }
+    });
+
+    utils.configureMiddleware({
+      log: ['serverError'],
+      logger: utils.Logger,
+      getUser: function(req) {
+        return req.user ? req.user.username : 'Unauthorized';
+      }
+    });
+
+    app.use(utils.Middleware);
+
+    app.use('/', (req, res) => {
+      return DB.query('DELETE FROM users WHERE id = 5')
+        .then(dbresult => {
+          require('atlasutils/slack').send('general', 'omg someone deleted our data');
+          res.deleted();
+        })
+        .catch(res.handleError); // logs error and slack
+    });
+
+
+
 ## Logger
 
 #### Basic Usage:  
@@ -43,6 +103,18 @@
         }
       }]
     });
+
+* `config.env` default `process.env.NODE_ENV || 'development' - environment to prepend to log lines
+* `config.verbose` default `false` - whether to print logs during testing
+* `config.cwd` default `process.cwd()` - trims cwd from filenames, so `'(C:\Users\Test\server.js)'` just becomes `'(server.js)'`
+* `config.transports` Array of `transport` types
+  * `transport.type` - default `Console` - any of Winston transport types, including `DailyRotateFile`
+  * `transport.properties` - any Winston transport properties. 
+* `config.slack` 
+  * `slack.instance` default `null` - An instance of `atlasutils/slack`, if logging should be sent to slack as well
+  * `slack.levels` default `['error', 'warn']` - Array of levels to log to slack
+  * `slack.channel` default `'general'` - Channel to log errors to. 
+
 
 
 ## Errors
@@ -137,4 +209,5 @@ Slack must be configured with an API token.
 * `slack.tagUser(username)` - will attempt to find the user by username or last name, and wrap it in tag syntax that the bot can recognize. 
 
     console.log(slack.tagUser('jon')); // <@jon>
+
 

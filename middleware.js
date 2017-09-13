@@ -99,6 +99,14 @@ function middleware(req, res, next) {
     return sendError(req, res, 500, error);
   };
 
+  res.created = function(data) {
+    res.status(201).json(data);
+  };
+
+  res.deleted = function(data) {
+    res.status(204).json(data);
+  };
+
   next();
 }
 
