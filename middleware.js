@@ -1,5 +1,24 @@
 let errors = require('./errors');
+let _ = require('lodash');
 
+
+let CONFIG = {
+  log: ['serverError'],
+  logger: console
+};
+
+
+function logifenabled(args, method, warn) {
+  if (!CONFIG.log.includes(method)) {
+    return;
+  }
+  args = Array.prototype.slice.call(args);
+  let type = 'error';
+  if (warn) {
+    type = 'warn';
+  }
+  CONFIG.logger[type].apply(CONFIG.logger, args);
+}
 
 function middleware(req, res, next) {
   
@@ -23,6 +42,7 @@ function middleware(req, res, next) {
   };
 
   res.userError = function(data) {
+    logifenabled(arguments, 'userError', true);
     let error = extractDetails.apply(null, arguments);
     if (!error.message) { error.message = 'Bad Request'; }
     if (!error.status) { error.status = 400; }
@@ -31,6 +51,7 @@ function middleware(req, res, next) {
   res.badRequest = res.userError;
   
   res.unauthorized = function(data) {
+    logifenabled(arguments, 'unauthorized', true);
     let error = extractDetails.apply(null, arguments);
     if (!error.message) { error.message = 'Unauthorized'; }
     if (!error.status) { error.status = 401; }
@@ -38,6 +59,7 @@ function middleware(req, res, next) {
   };
 
   res.forbidden = function(data) {
+    logifenabled(arguments, 'forbidden', true);
     let error = extractDetails.apply(null, arguments);
     if (!error.message) { error.message = 'Forbidden'; }
     if (!error.status) { error.status = 403; }
@@ -45,6 +67,7 @@ function middleware(req, res, next) {
   };
 
   res.notFound = function(data) {
+    logifenabled(arguments, 'notFound', true);
     let error = extractDetails.apply(null, arguments);
     if (!error.message) { error.message = 'Not Found'; }
     if (!error.status) { error.status = 404; }
@@ -52,10 +75,10 @@ function middleware(req, res, next) {
   };
 
   res.serverError = function(data) {
-    if (data && data instanceof DoneError) {
+    if (data && data instanceof errors.DoneError) {
       return;
     }
-
+    logifenabled(arguments, 'serverError', false);
     let error = extractDetails.apply(null, arguments);
     if (!error.message) { error.message = 'Server Error'; }
     if (!error.status) { error.status = 500; }
@@ -87,14 +110,15 @@ function extractDetails(...args) {
       error.data = arg.data;
     }
   }
+  return error;
 }
 
   
 function sendError(req, res, status, error) {
   if (expectsJSON(req)) {
-    return res.status(status).render('error', error);
-  } else {
     return res.status(status).json(error);
+  } else {
+    return res.status(status).render('error', error);
   }
 }
 
@@ -105,6 +129,14 @@ function expectsJSON(req) {
     return false;
   }
 }
+
+
+middleware.configure = function(config) {
+  CONFIG = _.merge(CONFIG, config);
+  if (CONFIG.log === true) {
+    CONFIG.log = ['userError', 'unauthorized', 'forbidden', 'notFound', 'serverError'];
+  }
+};
 
 
 module.exports = middleware;

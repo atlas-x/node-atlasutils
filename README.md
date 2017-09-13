@@ -79,3 +79,17 @@
 * `res.notFound(...)` - sends a `404` response
 * `res.serverError(...)` - sends a `500` response
 
+#### Configure  
+
+    // require('atlasutils/middleware').configure({...})
+    require('atlasutils').configureMiddleware({
+      log: ['serverError'],
+      logger: console
+    });
+
+or to enable logging with the atlasutils logger  
+
+    require('atlasutils/middleware').configure({
+      logger: require('atlasutils/logger')
+    });
+
