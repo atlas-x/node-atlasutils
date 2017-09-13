@@ -60,6 +60,26 @@
 * `DoneError` | `Done` - indicates whether the `.catch()` block should ignore this error. Useful when using `atlasutils/middleware`
 
 
+#### Utility  
+
+* `errors.normalizeError(error)` will take in an error object/class and attempt to normalize it to one of the exported errors.  This is used internally in `atlasutils/middleware` to determine the response type to send.  This can be customized by the `config.normalize` function to provide additional functionality. 
+
+#### Configure  
+
+    // require('atlasutils/middleware').configure({...});
+    require('atlasutils').configureErrors({
+      normalize: function(error, Errors) {
+        if (error instanceof MyDB.DBNotFound) {
+          return new Errors.NotFound(error);
+        }
+      }
+    });
+
+* `config.normalize` should be a function that takes in two arguments:
+  * `error` the error being caught. Inspect however you see fit  
+  * `Errors` the exported Error classes to be returned.  
+  and returns an instance of `Errors.<Error>`
+
 ## Middleware
 
     let app = express();
@@ -70,9 +90,9 @@
 
 * `res.handleError(error)` - will extract the relevant error and send a response with the correct status code.  If the error is of type `errors.DoneError`, it will not do anything. 
 * `res.expectsJSON()` - `true|false` if detected XHR headers
-* `res.userError(message)`
-  `res.userError(status, message)`
-  `res.userError(status, message, data)`
+* `res.userError(message)`  
+  `res.userError(status, message)`  
+  `res.userError(status, message, data)`  
   `res.userError({status, message, data})` - sends a `400` response
 * `res.unauthorized(...)` - sends a `401` response
 * `res.forbidden(...)` - sends a `403` response

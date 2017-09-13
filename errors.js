@@ -2,6 +2,9 @@
 
 let _ = require('lodash');
 
+let CONFIG = {
+  normalize: function(error) {}
+};
 
 class UserError extends Error {
   constructor(...args) {
@@ -54,6 +57,15 @@ const STATUS_CODE_ERRORS = {
   500: ServerError
 };
 
+const ERRORS = {
+  UserError, User: UserError,
+  UnauthorizedError, Unauthorized: UnauthorizedError,
+  ForbiddenError, Forbidden: ForbiddenError,
+  NotFoundError, NotFound: NotFoundError,
+  ServerError, Server: ServerError,
+  DoneError, Done: DoneError
+};
+
 
 exports.normalizeError = function(error) {
   if (error instanceof UserError ||
@@ -96,6 +108,17 @@ exports.normalizeError = function(error) {
     return new UnauthorizedError(error);
   }
 
+  let customNormalizedError = CONFIG.normalize(error, ERRORS);
+  if (customNormalizedError) {
+    return customNormalizedError;
+  }
+
   return new ServerError(error);
 };
 
+exports.configure = function(config) {
+  CONFIG = _.merge(CONFIG, config);
+  if (!_.isFunction(CONFIG.normalize)) {
+    throw new Error('config.normalize MUST be a function');
+  }
+};
