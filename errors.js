@@ -2,7 +2,8 @@
 
 let _ = require('lodash');
 
-let CONFIG = {
+let CONFIG = {};
+const DEFAULT = {
   normalize: function(error) {}
 };
 
@@ -117,7 +118,7 @@ exports.normalizeError = function(error) {
 };
 
 exports.configure = function(config) {
-  CONFIG = _.merge(CONFIG, config);
+  CONFIG = _.merge({}, DEFAULT, config);
   if (!_.isFunction(CONFIG.normalize)) {
     throw new Error('config.normalize MUST be a function');
   }

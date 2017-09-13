@@ -4,10 +4,12 @@ describe('Logger', () => {
 
   it(`shouldn't crash on require from index`, () => {
     let logger = require('../').Logger(__filename);
+    require('../').configureLogger();
   });
 
   it(`shouldn't crash on direct require`, () => {
     let logger = require('../logger')(__filename);
+    require('../logger').configure();
   });
 
   it(`should log to console`, () => {

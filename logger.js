@@ -11,6 +11,13 @@ let util = require('util');
 let CWD;
 let WINSTON;
 
+const DEFAULT_WINSTON = {
+  env: process.env.NODE_ENV || process.env.env || 'development',
+  transports: [],
+  verbose: process.env.VERBOSE || false,
+  cwd: process.cwd()
+};
+
 const CUSTOM_COLORS = {
   silly: 'magenta',
   debug: 'gray',
@@ -35,12 +42,7 @@ const DEFAULTS = {
 
 class Winston {
   constructor (config) {
-    config = _.merge({
-      env: process.env.NODE_ENV || process.env.env || 'development',
-      transports: [],
-      verbose: process.env.VERBOSE || false,
-      cwd: process.cwd()
-    }, config);
+    config = _.merge({}, DEFAULT_WINSTON, config);
 
     CWD = config.cwd;
 
@@ -71,7 +73,7 @@ class Winston {
     }
 
     transports.forEach(transport => {
-      let props = _.merge(DEFAULTS[transport.type], transport.properties);
+      let props = _.merge({}, DEFAULTS[transport.type], transport.properties);
       
       let file = this.filename;
       props.timestamp = getTimestamp;

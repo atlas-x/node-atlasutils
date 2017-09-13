@@ -8,6 +8,10 @@ exports.configureMiddleware = function(config) {
   require('./middleware').configure(config);
 };
 
+exports.configureErrors = function(config) {
+  require('./errors').configure(config);
+};
+
 Object.defineProperties(exports, {
   'Logger': {
     enumerable: true,

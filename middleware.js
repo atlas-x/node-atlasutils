@@ -2,13 +2,16 @@ let errors = require('./errors');
 let _ = require('lodash');
 
 
-let CONFIG = {
+let CONFIG = {};
+const DEFAULT = {
   log: ['serverError'],
-  logger: console
+  logger: console,
+  logUrl: true,
+  getUser: function(req) {}
 };
 
 
-function logifenabled(args, method, warn) {
+function logifenabled(args, method, warn, req) {
   if (!CONFIG.log.includes(method)) {
     return;
   }
@@ -17,6 +20,17 @@ function logifenabled(args, method, warn) {
   if (warn) {
     type = 'warn';
   }
+
+  if (CONFIG.logUrl) {
+    args.unshift(`- ${req.url} -`);
+  }
+
+  let user = CONFIG.getUser(req);
+  if (user) {
+    user = `[${user}]`;
+    args.unshift(user);
+  }
+
   CONFIG.logger[type].apply(CONFIG.logger, args);
 }
 
@@ -42,7 +56,7 @@ function middleware(req, res, next) {
   };
 
   res.userError = function(data) {
-    logifenabled(arguments, 'userError', true);
+    logifenabled(arguments, 'userError', true, req);
     let error = extractDetails.apply(null, arguments);
     if (!error.message) { error.message = 'Bad Request'; }
     if (!error.status) { error.status = 400; }
@@ -51,7 +65,7 @@ function middleware(req, res, next) {
   res.badRequest = res.userError;
   
   res.unauthorized = function(data) {
-    logifenabled(arguments, 'unauthorized', true);
+    logifenabled(arguments, 'unauthorized', true, req);
     let error = extractDetails.apply(null, arguments);
     if (!error.message) { error.message = 'Unauthorized'; }
     if (!error.status) { error.status = 401; }
@@ -59,7 +73,7 @@ function middleware(req, res, next) {
   };
 
   res.forbidden = function(data) {
-    logifenabled(arguments, 'forbidden', true);
+    logifenabled(arguments, 'forbidden', true, req);
     let error = extractDetails.apply(null, arguments);
     if (!error.message) { error.message = 'Forbidden'; }
     if (!error.status) { error.status = 403; }
@@ -67,7 +81,7 @@ function middleware(req, res, next) {
   };
 
   res.notFound = function(data) {
-    logifenabled(arguments, 'notFound', true);
+    logifenabled(arguments, 'notFound', true, req);
     let error = extractDetails.apply(null, arguments);
     if (!error.message) { error.message = 'Not Found'; }
     if (!error.status) { error.status = 404; }
@@ -78,7 +92,7 @@ function middleware(req, res, next) {
     if (data && data instanceof errors.DoneError) {
       return;
     }
-    logifenabled(arguments, 'serverError', false);
+    logifenabled(arguments, 'serverError', false, req);
     let error = extractDetails.apply(null, arguments);
     if (!error.message) { error.message = 'Server Error'; }
     if (!error.status) { error.status = 500; }
@@ -132,9 +146,12 @@ function expectsJSON(req) {
 
 
 middleware.configure = function(config) {
-  CONFIG = _.merge(CONFIG, config);
+  CONFIG = _.merge({}, DEFAULT, config);
   if (CONFIG.log === true) {
     CONFIG.log = ['userError', 'unauthorized', 'forbidden', 'notFound', 'serverError'];
+  }
+  if (!_.isFunction(CONFIG.getUser)) {
+    throw new Error('config.getUser MUST be a function');
   }
 };
 

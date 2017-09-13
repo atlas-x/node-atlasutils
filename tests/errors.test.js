@@ -5,10 +5,12 @@ describe('Errors', () => {
 
   it(`shouldn't crash on require`, () => {
     require('../errors');
+    require('../errors').configure();
   });
 
   it(`shouldn't crash on require from index`, () => {
     require('../').Errors;
+    require('../').configureErrors();
   });
 
   it('should call custom normalize', () => {
