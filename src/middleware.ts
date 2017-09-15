@@ -1,9 +1,17 @@
-let errors = require('./errors');
-let _ = require('lodash');
+
+import * as errors from './errors';
+import * as _ from 'lodash';
+
+export interface MiddlewareConfig {
+  log?: string[],
+  logger?: any,
+  logUrl?: boolean,
+  getUser?: (req: any) => string|void;
+}
 
 
-let CONFIG = {};
-const DEFAULT = {
+let CONFIG: MiddlewareConfig = {};
+const DEFAULT: MiddlewareConfig = {
   log: ['serverError'],
   logger: console,
   logUrl: true,
@@ -34,7 +42,7 @@ function logifenabled(args, method, warn, req) {
   CONFIG.logger[type].apply(CONFIG.logger, args);
 }
 
-function middleware(req, res, next) {
+export default function middleware(req, res, next) {
   
   res.handleError = res.handleErrors = function(error) {
     error = errors.normalizeError(error);
@@ -112,7 +120,7 @@ function middleware(req, res, next) {
 
 
 function extractDetails(...args) {
-  let error = {};
+  let error:any = {};
   if (args.length > 2) {
     error.status = args[0];
     error.message = args[1];
@@ -152,16 +160,11 @@ function expectsJSON(req) {
   }
 }
 
-
-middleware.configure = function(config) {
-  CONFIG = _.merge({}, DEFAULT, config);
-  if (CONFIG.log === true) {
-    CONFIG.log = ['userError', 'unauthorized', 'forbidden', 'notFound', 'serverError'];
-  }
+export function configure(config: MiddlewareConfig = {}) {
+  CONFIG = _.merge<MiddlewareConfig>({}, DEFAULT, config);
+  
   if (!_.isFunction(CONFIG.getUser)) {
     throw new Error('config.getUser MUST be a function');
   }
-};
+}
 
-
-module.exports = middleware;

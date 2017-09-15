@@ -1,22 +1,30 @@
 'use strict';
 
-let SlackClient = require('@slack/client');
+import * as SlackClient from '@slack/client';
 let RTM_EVENTS = SlackClient.CLIENT_EVENTS.RTM;
-let _ = require('lodash');
-let util = require('util')
+import * as _ from 'lodash';
+import * as util from 'util';
+
+export interface SlackConfig {
+  enabled?: boolean;
+  token?: string;
+}
 
 
-const DEFAULT = {
+const DEFAULT: SlackConfig = {
   enabled: true,
   token: ''
 };
 
-class Slack {
-  constructor() {
-    this.enabled = false;
-    this.users = [];
-    this.channels = {};
-  }
+export class CustomSlack {
+  enabled: boolean = false;
+  users: any[] = [];
+  channels: any = {};
+  config: SlackConfig|null = null;
+  private _ready = null;
+  private _slack = null;
+  info: any = null;
+  name: string = null;
 
   configure(config) {
     this.config = _.merge({}, DEFAULT, config);
@@ -51,7 +59,7 @@ class Slack {
     });
   }
 
-  ready() {
+  ready(): Promise<string|void> {
     if (this.config) {
       return this._ready;
     } else {
@@ -63,7 +71,7 @@ class Slack {
     this._slack.disconnect();
   }
 
-  tagUser (name) {
+  tagUser (name: string): string {
     name = name.trim();
     let tag = name;
     for (let ii = 0; ii < this.users.length; ii++) {
@@ -81,7 +89,7 @@ class Slack {
     return tag;
   }
 
-  send (channel, text) {
+  send (channel: string, text: string): Promise<string|void> {
     return this.ready().then(() => {
       if (!this.channels[channel]) {
         return Promise.reject(`Could not find #${channel} (maybe ${this.name} is not invited?)`);
@@ -101,24 +109,43 @@ class Slack {
 
 // layer of abstraction because configuring after requiring causes some 
 // messy issues when testing / configuring more than once
-class SlackManager {
-  configure(...args) {
-    this.disconnect();
-    this.slack = new Slack();
-    this.slack.configure(...args);
+export class SlackManager {
+  public static slack: CustomSlack = null;
+  public slack: CustomSlack;
+  constructor() {
+    this.slack = SlackManager.slack;
   }
-  send(...args) {
-    return this.slack.send(...args);
+  
+  static configure(config: SlackConfig) {
+    SlackManager.disconnect();
+    SlackManager.slack = new CustomSlack();
+    return SlackManager.slack.configure(config);
   }
-  tagUser(...args) {
-    return this.slack.tagUser(...args);
+  send(channel: string, text: string): Promise<string|void> {
+    return SlackManager.slack.send(channel, text);
+  }
+
+  tagUser(name: string): string {
+    return SlackManager.slack.tagUser(name);
+  }
+  static disconnect() {
+    if (SlackManager.slack) {
+      SlackManager.slack.disconnect();
+      SlackManager.slack = null;
+    }
   }
   disconnect() {
-    if (this.slack) {
-      this.slack.disconnect();
-      this.slack = null;
-    }
+    return SlackManager.disconnect();
+  }
+  configure(config: SlackConfig) {
+    return SlackManager.configure(config);
   }
 }
 
-module.exports = new SlackManager();
+let Slack = new SlackManager();
+export default Slack;
+
+
+export function configure(config: SlackConfig = {}) {
+  return SlackManager.configure(config);
+}

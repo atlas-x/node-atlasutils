@@ -1,54 +1,41 @@
 'use strict';
 
-let _ = require('lodash');
+import * as _ from 'lodash';
 
-let CONFIG = {};
-const DEFAULT = {
-  normalize: function(error) {}
-};
 
-class UserError extends Error {
-  constructor(...args) {
-    super(...args);
-    this.status = 400;
-  }
+export class StatusError extends Error {
+  public name:string = "StatusError";
+  public status: number;
 }
-exports.UserError = exports.User = UserError;
 
-class UnauthorizedError extends Error {
-  constructor(...args) {
-    super(...args);
-    this.status = 401;
-  }
+export class UserError extends StatusError {
+  public status:number = 400;
 }
-exports.UnauthorizedError = exports.Unauthorized = UnauthorizedError;
+export let User = UserError;
 
-class ForbiddenError extends Error {
-  constructor(...args) {
-    super(...args);
-    this.status = 403;
-  }
+export class UnauthorizedError extends StatusError {
+  public status:number = 401;
 }
-exports.ForbiddenError = exports.Forbidden = ForbiddenError;
+export let Unauthorized = UnauthorizedError;
 
-class NotFoundError extends Error {
-  constructor(...args) {
-    super(...args);
-    this.status = 404;
-  }
+export class ForbiddenError extends StatusError {
+  public status: number = 403;
 }
-exports.NotFoundError = exports.NotFound = NotFoundError;
+export let Forbidden = ForbiddenError;
 
-class ServerError extends Error {
-  constructor(...args) {
-    super(...args);
-    this.status = 500;
-  }
+export class NotFoundError extends StatusError {
+  public status:number = 404;
 }
-exports.ServerError = exports.Server = ServerError;
+export let NotFound = NotFoundError;
 
-class DoneError extends Error {}
-exports.DoneError = exports.Done = DoneError;
+export class ServerError extends StatusError {
+  public status:number = 500;
+}
+export let Server = ServerError;
+
+export class DoneError extends Error {}
+export let Done = DoneError;
+
 
 const STATUS_CODE_ERRORS = {
   400: UserError,
@@ -58,7 +45,8 @@ const STATUS_CODE_ERRORS = {
   500: ServerError
 };
 
-const ERRORS = {
+export interface ErrorsMap { [e: string]: new() => Error; }
+const ERRORS: ErrorsMap = {
   UserError, User: UserError,
   UnauthorizedError, Unauthorized: UnauthorizedError,
   ForbiddenError, Forbidden: ForbiddenError,
@@ -68,7 +56,19 @@ const ERRORS = {
 };
 
 
-exports.normalizeError = function(error) {
+let CONFIG: ErrorsConfig = {};
+const DEFAULT: ErrorsConfig = {
+  normalize: function(error: any, Errors: ErrorsMap) {
+    return null;
+  }
+};
+
+export interface ErrorsConfig {
+  normalize?: (error: any, Errors: ErrorsMap) => null|StatusError;
+};
+
+
+export function normalizeError(error: any) {
   if (error instanceof UserError ||
     error instanceof UnauthorizedError || 
     error instanceof ForbiddenError ||
@@ -117,9 +117,9 @@ exports.normalizeError = function(error) {
   return new ServerError(error);
 };
 
-exports.configure = function(config) {
+export function configure(config: ErrorsConfig = {}) {
   CONFIG = _.merge({}, DEFAULT, config);
   if (!_.isFunction(CONFIG.normalize)) {
     throw new Error('config.normalize MUST be a function');
   }
-};
+}

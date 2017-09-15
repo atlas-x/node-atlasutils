@@ -1,7 +1,12 @@
 'use strict';
 
+import {configure, MiddlewareConfig} from '../src/middleware';
+import mw from '../src/middleware';
+import * as utils from '../src';
+
+
 describe('Middleware', () => {
-  let req, res, logger, mw;
+  let req, res, logger;
   
   function use(register) {
     register(req, res, jest.fn());
@@ -22,18 +27,12 @@ describe('Middleware', () => {
   });
 
   describe('Stability', () => {
-    it(`shouldn't crash on require`, () => {
-      require('../middleware');
-      require('../middleware').configure();
-    });
-
-    it(`shouldn't crash on require from index`, () => {
-      require('../').Middleware;
-      require('../').configureMiddleware();
+    it(`shouldn't crash on configures`, () => {
+      configure();
+      utils.configureMiddleware();
     });
 
     it(`should allow registration with express`, () => {
-      let mw = require('../middleware');
       use(mw);
       expect(res.userError).toBeDefined;
       res.userError('message');
@@ -46,12 +45,11 @@ describe('Middleware', () => {
   describe('Logic', () => {
 
     beforeEach(() => {
-      mw = require('../middleware');
       use(mw);
     });
   
     it('should allow configuring a logger', () => {
-      mw.configure({logger: logger});
+      configure({logger: logger});
 
       res.serverError('message');
       expect(logger.error).toHaveBeenCalledTimes(1);
@@ -63,7 +61,7 @@ describe('Middleware', () => {
 
     it(`shoudl allow configuring log levels`, () => {
       
-      mw.configure({logger: logger, log: ['serverError', 'forbidden']});
+      configure({logger: logger, log: ['serverError', 'forbidden']});
       
       res.serverError('message');
       expect(logger.error).toHaveBeenCalledTimes(1);
@@ -86,7 +84,7 @@ describe('Middleware', () => {
 
     it(`should display a user`, () => {
       
-      mw.configure({
+      configure({
         logger,
         getUser: jest.fn(() => 'billy')
       });
@@ -98,14 +96,14 @@ describe('Middleware', () => {
     });
 
     it(`should disable url logging`, () => {
-      mw.configure({
+      configure({
         logger
       });
 
       res.serverError('test');
       expect(logger.error).toHaveBeenLastCalledWith('- /test -', 'test');
 
-      mw.configure({
+      configure({
         logger,
         logUrl: false
       });

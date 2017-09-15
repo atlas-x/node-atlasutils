@@ -1,20 +1,17 @@
 'use strict';
 
+import * as errors from '../src/errors';
+import * as util from '../src';
+
 describe('Errors', () => {
   class MyDBError extends Error {}
 
-  it(`shouldn't crash on require`, () => {
-    require('../errors');
-    require('../errors').configure();
-  });
-
-  it(`shouldn't crash on require from index`, () => {
-    require('../').Errors;
-    require('../').configureErrors();
+  it(`shouldn't crash on configures`, () => {
+    errors.configure();
+    util.configureErrors();
   });
 
   it('should call custom normalize', () => {
-    let errors = require('../errors');
     let normalize = jest.fn();
     errors.configure({
       normalize
@@ -27,12 +24,10 @@ describe('Errors', () => {
   });
 
   it(`should return the error if instance of errors`, () => {
-    let errors = require('../errors');
     expect(errors.normalizeError(new errors.User())).toBeInstanceOf(errors.UserError);
   });
 
   it(`should return an error based on status code`, () => {
-    let errors = require('../errors');
     let error = {statusCode: 403, message: 'you shall not pass'};
     let norm = errors.normalizeError(error);
 
@@ -42,7 +37,6 @@ describe('Errors', () => {
   });
 
   it(`should return a custom error if provided`, () => {
-    let errors = require('../errors');
     let error = new MyDBError('heyo');
     let normalize = jest.fn((err) => new errors.NotFoundError(err.message));
     errors.configure({

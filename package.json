@@ -2,7 +2,9 @@
   "name": "atlasutils",
   "version": "1.0.0",
   "description": "Modules for use in Atlas node projects",
-  "main": "index.js",
+  "main": "./dist/src/index.js",
+  "module": "./src/index.ts",
+  "types": "./src/index.d.ts",
   "repository": "https://github.com/atlas-x/node-atlasutils",
   "author": "Atlas Solutions <jon@atlas-x.com>",
   "license": "MIT",
@@ -14,9 +16,32 @@
     "winston-daily-rotate-file": "^1.5.0"
   },
   "devDependencies": {
-    "jest": "^21.0.2"
+    "@types/jest": "^20.0.8",
+    "@types/node": "^8.0.28",
+    "@types/winston": "^2.3.5",
+    "jest": "^21.0.2",
+    "ts-jest": "^21.0.1",
+    "ts-node": "^3.3.0",
+    "typescript": "^2.5.2"
   },
   "scripts": {
-    "test": "./node_modules/.bin/jest tests"
+    "test": "./node_modules/.bin/jest tests",
+    "build": "tsc -p ./",
+    "start": "tsc -w -p ./",
+    "prepublish": "npm run build"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.ts$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testPathIgnorePatterns": [
+      "\\node_modules\\",
+      "\\dist\\"
+    ],
+    "testRegex": "\\.(test|spec)\\.(js|ts)$",
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ]
   }
 }

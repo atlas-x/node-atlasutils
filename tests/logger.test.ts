@@ -1,23 +1,32 @@
 'use strict';
 
+import {configure, LoggerConfig} from '../src/logger';
+import Logger from '../src/logger';
+import * as util from '../src';
+
+
 describe('Logger', () => {
 
-  it(`shouldn't crash on require from index`, () => {
-    let logger = require('../').Logger(__filename);
-    require('../').configureLogger();
+  beforeEach(() => {
+    configure();
   });
 
-  it(`shouldn't crash on direct require`, () => {
-    let logger = require('../logger')(__filename);
-    require('../logger').configure();
+  it(`shouldn't crash on configures`, () => {
+    configure();
+    util.configureLogger();
+  });
+
+  it(`should log on base require`, () => {
+    Logger.log('hi');
   });
 
   it(`should log to console`, () => {
-    let logger = require('../logger')(__filename);
+    
+    let logger = new Logger(__filename);
     let debug = jest.fn();
-    logger.winston.logger.debug = debug;
+    Logger.winston.logger.debug = debug;
     let error = jest.fn();
-    logger.winston.logger.error = error;
+    Logger.winston.logger.error = error;
 
     logger.log('log');
     expect(debug.mock.calls.length).toBe(1);
@@ -26,12 +35,11 @@ describe('Logger', () => {
   });
 
   it(`should default to console`, () => {
-    let logger = require('../logger')(__filename);
-    expect(logger.winston.logger.transports.console).toBeDefined();
+    expect(Logger.winston.logger.transports.console).toBeDefined();
   });
 
   it(`should allow DailyRotateFile`, () => {
-    require('../').configureLogger({
+    configure({
       transports: [{
         type: 'DailyRotateFile',
         properties: {
@@ -39,8 +47,7 @@ describe('Logger', () => {
         }
       }]
     });
-    let logger = require('../logger')(__filename);
-    expect(logger.winston.logger.transports.dailyRotateFile).toBeDefined();
+    expect(Logger.winston.logger.transports.dailyRotateFile).toBeDefined();
   });
 
   it(`should log to slack on error`, () => {
@@ -50,14 +57,15 @@ describe('Logger', () => {
       },
       send: jest.fn()
     };
-    require('../').configureLogger({
+    configure({
       slack: {
         instance: slackmock,
         levels: ['debug'],
         channel: 'errorsss'
       }
     });
-    let logger = require('../logger')(__filename);
+
+    let logger = new Logger(__filename);
 
     logger.silly('test silly');
     expect(slackmock.send).toHaveBeenCalledTimes(0);
