@@ -1,7 +1,7 @@
 'use strict';
 
-import * as errors from '../src/errors';
-import * as util from '../src';
+import * as errors from '../lib/errors';
+import * as util from '../lib';
 
 describe('Errors', () => {
   class MyDBError extends Error {}

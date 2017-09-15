@@ -1,8 +1,8 @@
 'use strict';
 
-import {configure, MiddlewareConfig} from '../src/middleware';
-import mw from '../src/middleware';
-import * as utils from '../src';
+import {configure, MiddlewareConfig} from '../lib/middleware';
+import mw from '../lib/middleware';
+import * as utils from '../lib';
 
 
 describe('Middleware', () => {

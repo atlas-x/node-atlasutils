@@ -1,8 +1,8 @@
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
-const slack_1 = require("../src/slack");
-const slack_2 = require("../src/slack");
-const utils = require("../src");
+const slack_1 = require("../lib/slack");
+const slack_2 = require("../lib/slack");
+const utils = require("../lib");
 describe('Slack', () => {
     describe('Stability', () => {
         it(`shouldn't crash on configures`, () => {

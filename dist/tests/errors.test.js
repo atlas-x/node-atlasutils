@@ -1,7 +1,7 @@
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
-const errors = require("../src/errors");
-const util = require("../src");
+const errors = require("../lib/errors");
+const util = require("../lib");
 describe('Errors', () => {
     class MyDBError extends Error {
     }

@@ -1,8 +1,8 @@
 'use strict';
 
-import {configure, LoggerConfig} from '../src/logger';
-import Logger from '../src/logger';
-import * as util from '../src';
+import {configure, LoggerConfig} from '../lib/logger';
+import Logger from '../lib/logger';
+import * as util from '../lib';
 
 
 describe('Logger', () => {

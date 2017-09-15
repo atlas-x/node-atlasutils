@@ -1,8 +1,8 @@
 'use strict';
 
-import {configure} from '../src/slack';
-import slack from '../src/slack';
-import * as utils from '../src';
+import {configure} from '../lib/slack';
+import slack from '../lib/slack';
+import * as utils from '../lib';
 
 describe('Slack', () => {
   describe('Stability', () => {

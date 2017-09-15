@@ -1,8 +1,8 @@
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
-const logger_1 = require("../src/logger");
-const logger_2 = require("../src/logger");
-const util = require("../src");
+const logger_1 = require("../lib/logger");
+const logger_2 = require("../lib/logger");
+const util = require("../lib");
 describe('Logger', () => {
     beforeEach(() => {
         logger_1.configure();

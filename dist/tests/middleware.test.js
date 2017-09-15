@@ -1,8 +1,8 @@
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
-const middleware_1 = require("../src/middleware");
-const middleware_2 = require("../src/middleware");
-const utils = require("../src");
+const middleware_1 = require("../lib/middleware");
+const middleware_2 = require("../lib/middleware");
+const utils = require("../lib");
 describe('Middleware', () => {
     let req, res, logger;
     function use(register) {
