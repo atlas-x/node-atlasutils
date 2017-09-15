@@ -20,6 +20,7 @@ describe('Logger', () => {
     Logger.log('hi');
   });
 
+
   it(`should log to console`, () => {
     
     let logger = new Logger(__filename);
@@ -50,26 +51,15 @@ describe('Logger', () => {
     expect(Logger.winston.logger.transports.dailyRotateFile).toBeDefined();
   });
 
-  it(`should log to slack on error`, () => {
-    let slackmock = {
-      slack: {
-        enabled: true,
-      },
-      send: jest.fn()
-    };
+  it(`should allow AtlasSlack`, () => {
     configure({
-      slack: {
-        instance: slackmock,
-        levels: ['debug'],
-        channel: 'errorsss'
-      }
+      transports: [{
+        type: 'AtlasSlack',
+        properties: {
+          token: 'xx'
+        }
+      }]
     });
-
-    let logger = new Logger(__filename);
-
-    logger.silly('test silly');
-    expect(slackmock.send).toHaveBeenCalledTimes(0);
-    logger.debug('test debug');
-    expect(slackmock.send).toHaveBeenCalledTimes(1);
+    expect(Logger.winston.logger.transports.AtlasSlack).toBeDefined();
   });
 });

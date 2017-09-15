@@ -3,6 +3,7 @@
 import {TransportOptions, NpmConfigSetLevels, LoggerInstance} from 'winston';
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
+import './winston-atlasslack';
 import * as moment from 'moment';
 import * as path from 'path';
 import * as _ from 'lodash';
@@ -10,20 +11,16 @@ import * as colors from 'winston/lib/winston/config';
 import * as util from 'util';
 import {SlackManager} from './slack';
 import Slack from './slack';
+import {AtlasSlackTransportOptions} from './winston-atlasslack';
 
 let CWD: string;
 let WINSTON: CustomWinston;
 
 export interface LoggerConfig {
   env?: string;
-  transports?: TransportOptions[];
+  transports?: Array<TransportOptions|AtlasSlackTransportOptions>;
   verbose?: boolean;
   cwd?: string;
-  slack?: {
-    instance?: any;
-    levels?: string[];
-    channel?: string;
-  }
 };
 
 
@@ -32,11 +29,6 @@ const DEFAULT_WINSTON: LoggerConfig = {
   transports: [],
   verbose: !!process.env.VERBOSE || false,
   cwd: process.cwd(),
-  slack: {
-    instance: null,
-    levels: ['error', 'warn'],
-    channel: 'general'
-  }
 };
 
 const CUSTOM_COLORS = {
@@ -44,7 +36,7 @@ const CUSTOM_COLORS = {
   debug: 'gray',
   info: 'green',
   warn: 'yellow',
-  error: ['white', 'bgRed']
+  error: <any>['white', 'bgRed']
 };
 
 winston.addColors(CUSTOM_COLORS); // tslint:disable-line 
@@ -129,20 +121,6 @@ export default class Logger {
 
   static _log(level:string, ...args) {
     args = Logger.transform.apply(args);
-
-    let slackcfg = Logger.winston.config.slack;
-    let slack = slackcfg.instance;
-    if (slack && slack.slack.enabled && slackcfg.levels.includes(level)) {
-      let errormsg = `[${getTimestamp()}] ${this.winston.config.env.toUpperCase()} ${level.toUpperCase()}`;
-      for (let arg of args) {
-        if (_.isString(arg) && arg.match(/^stack\:/)) {
-          arg = arg.split('\n').slice(0, 4).join('\n');
-        }
-        errormsg += " " + (_.isString(arg) ? arg : JSON.stringify(arg));
-      }
-      slack.send(slackcfg.channel, errormsg);
-    }
-
     Logger.winston.logger[level].apply(Logger.winston.logger, args);
   }
 

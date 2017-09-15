@@ -33,6 +33,7 @@
     "transform": {
       "^.+\\.ts$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
+    "clearMocks": true,
     "testPathIgnorePatterns": [
       "\\node_modules\\",
       "\\dist\\"

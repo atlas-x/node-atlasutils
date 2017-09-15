@@ -44,11 +44,14 @@
           filename: './logs/apperror.log',
           level: 'warn'
         }
+      }, {
+        type: 'AtlasSlack',
+        properties: {
+          token: 'xxxxx',
+          level: 'warn',
+          channel: 'random'
+        }
       }],
-      slack: {
-        instance: utils.Slack,
-        channel: 'errors'
-      }
     });
 
     utils.configureErrors({
@@ -141,11 +144,20 @@ Error: hi
 * `config.transports` Array of `transport` types
   * `transport.type` - default `Console` - any of Winston transport types, including `DailyRotateFile`
   * `transport.properties` - any Winston transport properties. 
-* `config.slack` 
-  * `slack.instance` default `null` - An instance of `atlasutils/slack`, if logging should be sent to slack as well
-  * `slack.levels` default `['error', 'warn']` - Array of levels to log to slack
-  * `slack.channel` default `'general'` - Channel to log errors to. 
 
+### AtlasSlack transport
+
+Bundled with the Logger is a transport that will use [Slack](#slack) called `AtlasSlack`.  Slack must be configured in order for this transport to work.  The options for this transport should look like:
+
+    {
+      type: 'AtlasSlack',
+      properties: {
+        level: 'warn',
+        channel: 'random',
+        token: 'xxxx',
+        env: process.env.NODE_ENV
+      }
+    }
 
 
 ## <a href="errors"></a>Errors

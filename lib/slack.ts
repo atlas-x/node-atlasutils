@@ -110,35 +110,32 @@ export class CustomSlack {
 // layer of abstraction because configuring after requiring causes some 
 // messy issues when testing / configuring more than once
 export class SlackManager {
-  public static slack: CustomSlack = null;
   public slack: CustomSlack;
   constructor() {
-    this.slack = SlackManager.slack;
+    this.slack = null;
   }
   
-  static configure(config: SlackConfig) {
-    SlackManager.disconnect();
-    SlackManager.slack = new CustomSlack();
-    return SlackManager.slack.configure(config);
-  }
   send(channel: string, text: string): Promise<string|void> {
-    return SlackManager.slack.send(channel, text);
+    return this.slack.send(channel, text);
   }
 
   tagUser(name: string): string {
-    return SlackManager.slack.tagUser(name);
-  }
-  static disconnect() {
-    if (SlackManager.slack) {
-      SlackManager.slack.disconnect();
-      SlackManager.slack = null;
-    }
+    return this.slack.tagUser(name);
   }
   disconnect() {
-    return SlackManager.disconnect();
+    if (this.slack) {
+      this.slack.disconnect();
+      this.slack = null;
+    }
   }
   configure(config: SlackConfig) {
-    return SlackManager.configure(config);
+    this.disconnect();
+    this.slack = new CustomSlack();
+    this.slack.configure(config);
+  }
+
+  instance(): SlackManager {
+    return new SlackManager();
   }
 }
 
@@ -147,5 +144,5 @@ export default Slack;
 
 
 export function configure(config: SlackConfig = {}) {
-  return SlackManager.configure(config);
+  return Slack.configure(config);
 }
