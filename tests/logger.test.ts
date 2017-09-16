@@ -1,7 +1,7 @@
 'use strict';
 
-import {configure, LoggerConfig} from '../lib/logger';
-import Logger from '../lib/logger';
+import {configure, LoggerConfig, Logger} from '../lib/logger';
+import logger from '../lib/logger';
 import * as util from '../lib';
 
 
@@ -17,7 +17,7 @@ describe('Logger', () => {
   });
 
   it(`should log on base require`, () => {
-    Logger.log('hi');
+    logger.log('hi');
   });
 
 

@@ -116,7 +116,7 @@ function getTimestamp(): string {
   return (new Date()).toISOString();
 }
 
-export default class Logger {
+export class Logger {
   static winston: CustomWinston = WINSTON;
 
   static _log(level:string, ...args) {
@@ -204,6 +204,19 @@ export default class Logger {
   }
 
 }
+
+let defaultExport: any = function(filename: string) {
+  return new Logger(filename);
+}
+defaultExport.log = Logger.log;
+defaultExport.silly = Logger.silly;
+defaultExport.debug = Logger.debug;
+defaultExport.info = Logger.info;
+defaultExport.warn = Logger.warn;
+defaultExport.error = Logger.error;
+
+export default defaultExport;
+
 
 export function configure(config: LoggerConfig = {}) {
   WINSTON = new CustomWinston(config);
