@@ -24,7 +24,7 @@
     "typescript": "^2.5.2"
   },
   "scripts": {
-    "test": "./node_modules/.bin/jest tests",
+    "test": "./node_modules/.bin/jest",
     "build": "tsc",
     "start": "tsc -w",
     "prepublish": "npm run build"
