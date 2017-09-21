@@ -15,24 +15,36 @@ export declare class CustomWinston {
     filename: string;
     constructor(config: LoggerConfig);
 }
-export default class Logger {
-    filename: string;
-    static winston: CustomWinston;
-    static _log(level: string, ...args: any[]): void;
+export declare let Logger: {
+    new (filename?: string): {
+        _log(level: string, ...args: any[]): void;
+        filename: string;
+        silly(...args: any[]): void;
+        debug(...args: any[]): void;
+        info(...args: any[]): void;
+        warn(...args: any[]): void;
+        error(...args: any[]): void;
+        log(...args: any[]): void;
+    };
+    winston: CustomWinston;
     _log(level: string, ...args: any[]): void;
-    constructor(filename?: string);
-    static silly(...args: any[]): void;
     silly(...args: any[]): void;
-    static debug(...args: any[]): void;
     debug(...args: any[]): void;
-    static info(...args: any[]): void;
     info(...args: any[]): void;
-    static warn(...args: any[]): void;
     warn(...args: any[]): void;
-    static error(...args: any[]): void;
     error(...args: any[]): void;
-    static log(...args: any[]): void;
     log(...args: any[]): void;
-    static transform(...args: any[]): any[];
-}
+    transform(...args: any[]): any[];
+    prefix(filename: string): {
+        _log(level: string, ...args: any[]): void;
+        filename: string;
+        silly(...args: any[]): void;
+        debug(...args: any[]): void;
+        info(...args: any[]): void;
+        warn(...args: any[]): void;
+        error(...args: any[]): void;
+        log(...args: any[]): void;
+    };
+};
+export default Logger;
 export declare function configure(config?: LoggerConfig): void;

@@ -77,12 +77,12 @@ export class CustomSlack {
     for (let ii = 0; ii < this.users.length; ii++) {
       let user = this.users[ii];
       if (user.name === name) {
-        return `<@${user.name}>`;
+        return `<@${user.id}>`;
       }
       if (user.profile) {
         let reg = new RegExp(`^${name}$`, 'i');
         if (reg.test(user.profile.last_name)) {
-          return `<@${user.name}>`;
+          return `<@${user.id}>`;
         }
       }
     }
@@ -109,10 +109,13 @@ export class CustomSlack {
 
 // layer of abstraction because configuring after requiring causes some 
 // messy issues when testing / configuring more than once
-export class SlackManager {
+export class Slack {
   public slack: CustomSlack;
-  constructor() {
+  constructor(config?: SlackConfig) {
     this.slack = null;
+    if (config) {
+      this.configure(config);
+    }
   }
   
   send(channel: string, text: string): Promise<string|void> {
@@ -134,15 +137,15 @@ export class SlackManager {
     this.slack.configure(config);
   }
 
-  instance(): SlackManager {
-    return new SlackManager();
+  instance(): Slack {
+    return new Slack();
   }
 }
 
-let Slack = new SlackManager();
-export default Slack;
+export let slack = new Slack();
+export default slack;
 
 
 export function configure(config: SlackConfig = {}) {
-  return Slack.configure(config);
+  return slack.configure(config);
 }

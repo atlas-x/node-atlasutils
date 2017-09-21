@@ -1,7 +1,7 @@
 import * as util from 'util';
 import * as winston from 'winston';
 import slack from './slack';
-import {SlackManager} from './slack';
+import {Slack} from './slack';
 import * as _ from 'lodash';
 
 export interface AtlasSlackTransportOptions {
@@ -29,7 +29,7 @@ const DEFAULTS = {
 export class AtlasSlack extends winston.Transport {
   public token: string;
   public channel: string;
-  public slack: SlackManager;
+  public slack: Slack;
   public env: string;
   
   constructor(options: AtlasSlackTransportOptions) {
@@ -42,8 +42,7 @@ export class AtlasSlack extends winston.Transport {
     this.env = options.env;
     this['timestamp'] = options.timestamp;
     this['formatter'] = options.formatter;
-    this.slack = slack.instance();
-    this.slack.configure({token: this.token});
+    this.slack = new Slack({token: this.token});
   }
 
   log(level: string, msg: string, meta: any, callback?: Function) {

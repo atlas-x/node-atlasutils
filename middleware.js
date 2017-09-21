@@ -1,2 +1,7 @@
 // used for `require('atlasutils/logger')` - source in ./src
-module.exports = require('./dist/lib/middleware');
+let mw = require('./dist/middleware');
+
+let exportFunc = mw.middleware;
+exportFunc.configure = mw.configure;
+
+module.exports = exportFunc;

@@ -32,9 +32,19 @@ describe('Slack', () => {
       slack.disconnect();
     });
 
-    it('should send to a channel', () => {
-      jest.setTimeout(5000);
-      return slack.send(channel, 'test')
+    // it('should send to a channel', () => {
+    //   jest.setTimeout(5000);
+    //   return slack.send(channel, 'test')
+    // });
+
+    it('should tag a user', () => {
+      slack.slack.users = [
+        {name: 'jon', id: 'U555'},
+        {name: 'phil', profile: {last_name: 'dunphy'}, id: 'U666'}
+      ];
+      expect(slack.tagUser('jon')).toBe('<@U555>');
+      expect(slack.tagUser('dunphy')).toBe('<@U666>');
+      expect(slack.tagUser('joke')).toBe('joke');
     });
   });
 });

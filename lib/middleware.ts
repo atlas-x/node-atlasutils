@@ -42,7 +42,7 @@ function logifenabled(args, method, warn, req) {
   CONFIG.logger[type].apply(CONFIG.logger, args);
 }
 
-export default function middleware(req, res, next) {
+export let middleware = function middleware(req, res, next) {
   
   res.handleError = res.handleErrors = function(error) {
     error = errors.normalizeError(error);
@@ -117,6 +117,7 @@ export default function middleware(req, res, next) {
 
   next();
 }
+export default middleware;
 
 
 function extractDetails(...args) {

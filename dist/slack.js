@@ -69,12 +69,12 @@ class CustomSlack {
         for (let ii = 0; ii < this.users.length; ii++) {
             let user = this.users[ii];
             if (user.name === name) {
-                return `<@${user.name}>`;
+                return `<@${user.id}>`;
             }
             if (user.profile) {
                 let reg = new RegExp(`^${name}$`, 'i');
                 if (reg.test(user.profile.last_name)) {
-                    return `<@${user.name}>`;
+                    return `<@${user.id}>`;
                 }
             }
         }
@@ -100,9 +100,12 @@ class CustomSlack {
 exports.CustomSlack = CustomSlack;
 // layer of abstraction because configuring after requiring causes some 
 // messy issues when testing / configuring more than once
-class SlackManager {
-    constructor() {
+class Slack {
+    constructor(config) {
         this.slack = null;
+        if (config) {
+            this.configure(config);
+        }
     }
     send(channel, text) {
         return this.slack.send(channel, text);
@@ -122,13 +125,13 @@ class SlackManager {
         this.slack.configure(config);
     }
     instance() {
-        return new SlackManager();
+        return new Slack();
     }
 }
-exports.SlackManager = SlackManager;
-let Slack = new SlackManager();
-exports.default = Slack;
+exports.Slack = Slack;
+exports.slack = new Slack();
+exports.default = exports.slack;
 function configure(config = {}) {
-    return Slack.configure(config);
+    return exports.slack.configure(config);
 }
 exports.configure = configure;

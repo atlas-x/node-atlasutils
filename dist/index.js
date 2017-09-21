@@ -5,13 +5,13 @@ const logger_2 = require("./logger");
 exports.Logger = logger_2.default;
 const middleware_1 = require("./middleware");
 const middleware_2 = require("./middleware");
-exports.Middleware = middleware_2.default;
+exports.middleware = middleware_2.default;
 const errors_1 = require("./errors");
 const Errors = require("./errors");
 exports.Errors = Errors;
 const slack_1 = require("./slack");
 const slack_2 = require("./slack");
-exports.Slack = slack_2.default;
+exports.slack = slack_2.default;
 function configureLogger(config = {}) {
     logger_1.configure(config);
 }

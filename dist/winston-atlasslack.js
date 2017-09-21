@@ -23,17 +23,25 @@ class AtlasSlack extends winston.Transport {
         this.level = options.level;
         this.token = options.token;
         this.channel = options.channel;
+        this.env = options.env;
         this['timestamp'] = options.timestamp;
         this['formatter'] = options.formatter;
-        this.slack = slack_1.default.instance();
-        this.slack.configure({ token: this.token });
+        this.slack = new slack_1.Slack({ token: this.token });
     }
     log(level, msg, meta, callback) {
+        callback = callback || function () { };
         if (!this.slack.slack.enabled) {
             callback(`AtlasSlack transport registered but Slack is disabled`, false);
             return;
         }
-        let slackmsg = `${level.toUpperCase()} ${msg}`;
+        let stackidx = msg.lastIndexOf('stack:');
+        if (stackidx >= 0) {
+            let pre = msg.substr(0, stackidx);
+            let post = msg.substr(stackidx);
+            post = post.split('\n').slice(0, 4).join('\n');
+            msg = pre + post;
+        }
+        let slackmsg = `${this.env.toUpperCase()} ${msg}`;
         this.slack.send(this.channel, slackmsg)
             .then(() => {
             callback(null, true);
@@ -43,4 +51,5 @@ class AtlasSlack extends winston.Transport {
         });
     }
 }
+exports.AtlasSlack = AtlasSlack;
 winston.transports['AtlasSlack'] = AtlasSlack;

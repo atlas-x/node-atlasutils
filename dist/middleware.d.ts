@@ -4,5 +4,6 @@ export interface MiddlewareConfig {
     logUrl?: boolean;
     getUser?: (req: any) => string | void;
 }
-export default function middleware(req: any, res: any, next: any): void;
+export declare let middleware: (req: any, res: any, next: any) => void;
+export default middleware;
 export declare function configure(config?: MiddlewareConfig): void;

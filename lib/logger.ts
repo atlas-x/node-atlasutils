@@ -9,8 +9,6 @@ import * as path from 'path';
 import * as _ from 'lodash';
 import * as colors from 'winston/lib/winston/config';
 import * as util from 'util';
-import {SlackManager} from './slack';
-import Slack from './slack';
 import {AtlasSlackTransportOptions} from './winston-atlasslack';
 
 let CWD: string;
@@ -116,7 +114,7 @@ function getTimestamp(): string {
   return (new Date()).toISOString();
 }
 
-export default class Logger {
+export let Logger = class Logger {
   static winston: CustomWinston = WINSTON;
 
   static _log(level:string, ...args) {
@@ -158,7 +156,7 @@ export default class Logger {
     return Logger._log('warn', ...args);
   }
   warn(...args) {
-    return this._log('warn', ...args);
+    return this._log('warn', ...args); 
   }
   static error(...args) {
     return Logger._log('error', ...args);
@@ -203,7 +201,13 @@ export default class Logger {
     return args.concat(append).concat({});
   }
 
+  static prefix(filename: string): Logger {
+    return new Logger(filename);
+  }
 }
+export default Logger;
+
+
 
 export function configure(config: LoggerConfig = {}) {
   WINSTON = new CustomWinston(config);

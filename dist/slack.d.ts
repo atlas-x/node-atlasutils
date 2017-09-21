@@ -17,15 +17,15 @@ export declare class CustomSlack {
     tagUser(name: string): string;
     send(channel: string, text: string): Promise<string | void>;
 }
-export declare class SlackManager {
+export declare class Slack {
     slack: CustomSlack;
-    constructor();
+    constructor(config?: SlackConfig);
     send(channel: string, text: string): Promise<string | void>;
     tagUser(name: string): string;
     disconnect(): void;
     configure(config: SlackConfig): void;
-    instance(): SlackManager;
+    instance(): Slack;
 }
-declare let Slack: SlackManager;
-export default Slack;
+export declare let slack: Slack;
+export default slack;
 export declare function configure(config?: SlackConfig): void;
