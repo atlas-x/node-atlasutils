@@ -14,6 +14,7 @@ import {AtlasSlackTransportOptions} from './winston-atlasslack';
 let CWD: string;
 let WINSTON: CustomWinston;
 
+
 export interface LoggerConfig {
   env?: string;
   transports?: Array<TransportOptions|AtlasSlackTransportOptions>;
@@ -41,9 +42,11 @@ winston.addColors(CUSTOM_COLORS); // tslint:disable-line
 
 const TRANSPORT_DEFAULTS = {
   'Console': {
+    level: 'debug',
     stderrLevels: ['error', 'warn']
   },
   'DailyRotateFile': {
+    level: 'info',
     prettyPrint: true,
     prepend: true,
     json: false,
@@ -57,7 +60,7 @@ export class CustomWinston {
   public logger: LoggerInstance;
   public filename: string;
 
-  constructor (config: LoggerConfig) {
+  constructor (config?: LoggerConfig) {
     config = _.merge<LoggerConfig>({}, DEFAULT_WINSTON, config);
     this.config = config;
 
@@ -105,10 +108,9 @@ export class CustomWinston {
       this.logger.add(winston.transports[transport.type], props);
     });
   }
-
-
 }
 
+WINSTON = new CustomWinston();
 
 function getTimestamp(): string {
   return (new Date()).toISOString();
@@ -118,7 +120,7 @@ export let Logger = class Logger {
   static winston: CustomWinston = WINSTON;
 
   static _log(level:string, ...args) {
-    args = Logger.transform.apply(args);
+    args = Logger.transform.apply(Logger, args);
     Logger.winston.logger[level].apply(Logger.winston.logger, args);
   }
 

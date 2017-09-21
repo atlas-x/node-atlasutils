@@ -13,7 +13,7 @@ export declare class CustomWinston {
     config: LoggerConfig;
     logger: LoggerInstance;
     filename: string;
-    constructor(config: LoggerConfig);
+    constructor(config?: LoggerConfig);
 }
 export declare let Logger: {
     new (filename?: string): {

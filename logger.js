@@ -10,7 +10,6 @@ let Logger = logger.Logger;
 exportFunction.Logger = Logger;
 
 for (let method of Object.getOwnPropertyNames(Logger)) {
-
   if (_.isFunction(Logger[method])) {
     exportFunction[method] = Logger[method].bind(Logger);
   } else {

@@ -25,9 +25,11 @@ const CUSTOM_COLORS = {
 winston.addColors(CUSTOM_COLORS); // tslint:disable-line 
 const TRANSPORT_DEFAULTS = {
     'Console': {
+        level: 'debug',
         stderrLevels: ['error', 'warn']
     },
     'DailyRotateFile': {
+        level: 'info',
         prettyPrint: true,
         prepend: true,
         json: false,
@@ -81,6 +83,7 @@ class CustomWinston {
     }
 }
 exports.CustomWinston = CustomWinston;
+WINSTON = new CustomWinston();
 function getTimestamp() {
     return (new Date()).toISOString();
 }
@@ -93,7 +96,7 @@ exports.Logger = (_a = class Logger {
             }
         }
         static _log(level, ...args) {
-            args = Logger.transform.apply(args);
+            args = Logger.transform.apply(Logger, args);
             Logger.winston.logger[level].apply(Logger.winston.logger, args);
         }
         _log(level, ...args) {
