@@ -9,28 +9,31 @@
 #### Example minimal usage:  
 
     let app = express();
-    let utils = require('atlasutils');
+    let atlas = require('atlasutils');
     
-    utils.configureSlack({token: 'xxxxx'});
-    utils.configureLogger({
-      slack: utils.Slack,
-      channel: 'errors'
-    });
-    utils.configureMiddleware({ logger: utils.Logger });
+    atlas.configureSlack({token: 'xxxxx'});
+    atlas.configureMiddleware({ logger: atlas.Logger });
     
-    app.use(utils.Middleware);
+    app.use(atlas.middleware);
     
       
 
 #### Example full usage:
 
     let app = express();
-    let utils = require('atlasutils');
-    utils.configureSlack({token: 'xxxxxxxx'});
+    let atlas = require('atlasutils');
+    atlas.configureSlack({token: 'xxxxxxxx'});
 
-    utils.configureLogger({
+    atlas.configureLogger({
       env: 'production',
       transports: [{
+        type: 'AtlasSlack',
+        properties: {
+          level: 'warn',
+          token: 'xxxxx',
+          channel: 'random',
+        }
+      }, {
         type: 'DailyRotateFile',
         properties: {
           name: 'applog',
@@ -44,17 +47,10 @@
           filename: './logs/apperror.log',
           level: 'warn'
         }
-      }, {
-        type: 'AtlasSlack',
-        properties: {
-          token: 'xxxxx',
-          level: 'warn',
-          channel: 'random'
-        }
       }],
     });
 
-    utils.configureErrors({
+    atlas.configureErrors({
       normalize: function(error, Errors) {
         if (error instanceof DB.MySQLNotFound) {
           return new Errors.NotFound(error.message);
@@ -62,20 +58,20 @@
       }
     });
 
-    utils.configureMiddleware({
+    atlas.configureMiddleware({
       log: ['serverError'],
-      logger: utils.Logger,
+      logger: atlas.Logger,
       getUser: function(req) {
         return req.user ? req.user.username : 'Unauthorized';
       }
     });
 
-    app.use(utils.Middleware);
+    app.use(utils.middleware);
 
     app.use('/', (req, res) => {
       return DB.query('DELETE FROM users WHERE id = 5')
         .then(dbresult => {
-          require('atlasutils/slack').send('general', 'omg someone deleted our data');
+          require('atlasutils/slack').slack.send('general', 'omg someone deleted our data');
           res.deleted();
         })
         .catch(res.handleError); // logs error and slack
@@ -98,11 +94,25 @@ Error: hi
 
 #### Basic Usage:  
 
-    let logger = require('atlasutils').Logger(__filename);
-    logger.log('test');
+JS:
+
+    let logger = require('atlasutils/logger);
+    logger.debug('test);
+    // [2017-09-13T11:31:00.345Z] DEBUG - test
+    logger = require('atlasutils/logger)(__filename);
     // [2017-09-13T11:31:00.345Z] DEBUG (home/index.js) - test
-    logger.error('oh no!');
-    // [2017-09-13T11:31:00.534Z] ERROR (home/index.js) - oh no!
+    logger = new require('atlasutils').Logger(__filename);
+    // [2017-09-13T11:31:00.345Z] DEBUG (home/index.js) - test
+
+TypeScript:
+
+    import {Logger} from 'atlasutils';
+    Logger.debug('test);
+    // [2017-09-13T11:31:00.345Z] DEBUG - test
+    logger = new Logger(__filename);
+    logger.debug('test');
+    // [2017-09-13T11:31:00.345Z] DEBUG (home/index.js) - test
+
 
 #### Methods:
 
@@ -111,13 +121,51 @@ Error: hi
 * `logger.warn(<any>)`: level `warn`
 * `logger.error(<any>)`: level `error`
 
-#### Require directly:
+#### Filename prefix:
+
+    let logger = new Logger(__filename);
+    logger.error('test');
+    // [2017-09-13T11:31:00.345Z] ERROR (home/index.js) - test
+
+
+#### Requiring:
+
+##### JS
+
+Require directly for no prefix logger:
+
+    let logger = require('atlasutils/logger');
+
+Pass in a filename to prefix logs with what file is logging:
 
     let logger = require('atlasutils/logger')(__filename);
+
+Or create a new instance from the main library:
+
+    let logger = new require('atlasutils').Logger(__filename);
+
+##### TypeScript
+
+Import logger and use right away
+
+    import {Logger} from 'atlasutils';
+    Logger.debug();
+
+Create a new instance prefixed by string
+
+    import {Logger} from 'atlasutils';
+    let logger = new Logger(__filename);
+
+Or require module as a whole:
+
+    import * as Logger from 'atlasutils';
+
 
 #### Configure:  
 
     // require('atlasutils/logger').configure({...});
+    // import {configure} from 'atlasutils/logger';
+
     require('atlasutils').configureLogger({
       env: process.env.NODE_ENV || 'development',
       verbose: false,
@@ -215,7 +263,7 @@ e.g.
 ```
 let slack = require('atlasutils/slack');
 slack.configure(...); // required
-slack.send('general', 'hi guys!');
+slack.slack.send('general', 'hi guys!');
 ```
 
 #### Configure
