@@ -94,25 +94,17 @@ Error: hi
 
 #### Basic Usage:  
 
-JS:
-
-    let logger = require('atlasutils/logger);
-    logger.debug('test);
-    // [2017-09-13T11:31:00.345Z] DEBUG - test
-    logger = require('atlasutils/logger)(__filename);
-    // [2017-09-13T11:31:00.345Z] DEBUG (home/index.js) - test
-    logger = new require('atlasutils').Logger(__filename);
-    // [2017-09-13T11:31:00.345Z] DEBUG (home/index.js) - test
-
-TypeScript:
-
-    import {Logger} from 'atlasutils';
-    Logger.debug('test);
-    // [2017-09-13T11:31:00.345Z] DEBUG - test
-    logger = new Logger(__filename);
-    logger.debug('test');
-    // [2017-09-13T11:31:00.345Z] DEBUG (home/index.js) - test
-
+    $> let logger = require('atlasutils/logger);
+    $> logger.debug('test);
+    [2017-09-13T11:31:00.345Z] DEBUG - test
+    
+    $> logger = require('atlasutils/logger)(__filename);
+    $> logger.debug('test');
+    [2017-09-13T11:31:00.345Z] DEBUG (home/index.js) - test
+    
+    $> logger.error({err: 'oh no!'})
+    [2017-09-13T11:31:00.345Z] ERROR (home/index.js) - {err: "oh no!"}
+    
 
 #### Methods:
 
@@ -123,9 +115,9 @@ TypeScript:
 
 #### Filename prefix:
 
-    let logger = new Logger(__filename);
-    logger.error('test');
-    // [2017-09-13T11:31:00.345Z] ERROR (home/index.js) - test
+    $> let logger = new Logger(__filename);
+    $> logger.error('test');
+    [2017-09-13T11:31:00.345Z] ERROR (home/index.js) - test
 
 
 #### Requiring:
@@ -134,15 +126,19 @@ TypeScript:
 
 Require directly for no prefix logger:
 
-    let logger = require('atlasutils/logger');
+    $> let logger = require('atlasutils/logger');
+    $> logger.info('hi');
+    [2017-09-13T11:31:00.345Z] INFO - hi
 
 Pass in a filename to prefix logs with what file is logging:
 
-    let logger = require('atlasutils/logger')(__filename);
+    $> let logger = require('atlasutils/logger')(__filename);
+    $> logger.warn('hi');
+    [2017-09-13T11:31:00.345Z] WARN (home/index.js) - hi
 
 Or create a new instance from the main library:
 
-    let logger = new require('atlasutils').Logger(__filename);
+    $> let logger = new require('atlasutils').Logger(__filename);
 
 ##### TypeScript
 
