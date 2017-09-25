@@ -188,6 +188,9 @@ export let Logger = class Logger {
         if (arg['error']) {
           temparg['error'] = JSON.stringify(arg['error']);
         }
+        if (arg['query']) {
+          temparg['query'] = arg['query'].replace(/\n/g, ' ').replace(/\r/g, '');
+        }
         arg = temparg;
       }
       if (_.isPlainObject(arg)) {
