@@ -6,9 +6,16 @@ describe('JS require', () => {
   it('should require atlas correctly', () => {
     let atlas = require('../dist/'); 
     expect(atlas.Errors).toBeDefined();
+    expect(atlas.Errors.Done).toBeDefined();
+
     expect(atlas.Logger).toBeDefined();
+    expect(_.isFunction(atlas.Logger.debug)).toBe(true);
+
     expect(atlas.middleware).toBeDefined();
+    expect(_.isFunction(atlas.middleware)).toBe(true);
+
     expect(atlas.slack).toBeDefined();
+    expect(_.isFunction(atlas.slack.send)).toBe(true);
 
     expect(_.isFunction(atlas.configureErrors)).toBe(true);
     expect(_.isFunction(atlas.configureLogger)).toBe(true);
@@ -40,8 +47,7 @@ describe('JS require', () => {
 
   it('should require slack correctly', () => {
     let slack = require('../slack.js');
-    expect(_.isFunction(slack.slack.send)).toBe(true);
-    expect(slack.Slack).toBeDefined();
+    expect(_.isFunction(slack.send)).toBe(true);
   });
 
   
