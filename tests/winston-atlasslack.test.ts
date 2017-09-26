@@ -1,6 +1,7 @@
 import * as winston from 'winston';
 import '../lib/winston-atlasslack';
 import {AtlasSlack} from '../lib/winston-atlasslack';
+import * as _ from 'lodash';
 
 describe('winston-atlasslack', () => {
   it('should succeed on constructor', () => {
@@ -29,6 +30,19 @@ describe('winston-atlasslack', () => {
     expect(trans.log).toHaveBeenCalled();
     expect(trans.log.mock.calls[0][0]).toBe('error');
     expect(trans.log.mock.calls[0][1]).toBe('hi');
+  });
+
+  it('should have an instance of slack with or without token', () => {
+    let t1 = new AtlasSlack({
+      token: '555',
+      channel: 'general'
+    });
+    expect(_.isFunction(t1.slack.send)).toBe(true);
+
+    let t2 = new AtlasSlack({
+      channel: 'general'
+    });
+    expect(_.isFunction(t2.slack.send)).toBe(true);
   });
 
   function getWinston() {

@@ -5,7 +5,7 @@ import {Slack} from './slack';
 import * as _ from 'lodash';
 
 export interface AtlasSlackTransportOptions {
-  token: string;
+  token?: string;
   channel:string;
   level?: string;
   name?: string;
@@ -42,7 +42,11 @@ export class AtlasSlack extends winston.Transport {
     this.env = options.env;
     this['timestamp'] = options.timestamp;
     this['formatter'] = options.formatter;
-    this.slack = new Slack({token: this.token});
+    if (this.token) {
+      this.slack = new Slack({token: this.token});
+    } else {
+      this.slack = slack;
+    }
   }
 
   log(level: string, msg: string, meta: any, callback?: Function) {
