@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const winston = require("winston");
 const slack_1 = require("./slack");
+const slack_2 = require("./slack");
 const _ = require("lodash");
 ;
 const DEFAULTS = {
@@ -26,7 +27,12 @@ class AtlasSlack extends winston.Transport {
         this.env = options.env;
         this['timestamp'] = options.timestamp;
         this['formatter'] = options.formatter;
-        this.slack = new slack_1.Slack({ token: this.token });
+        if (this.token) {
+            this.slack = new slack_2.Slack({ token: this.token });
+        }
+        else {
+            this.slack = slack_1.default;
+        }
     }
     log(level, msg, meta, callback) {
         callback = callback || function () { };

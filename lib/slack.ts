@@ -30,7 +30,6 @@ export class CustomSlack {
     this.config = _.merge({}, DEFAULT, config);
     this.enabled = this.config.enabled;
     if (!this.enabled) {
-      this._ready = Promise.reject('Slack is not enabled');
       return;
     }
     this._slack = new SlackClient.RtmClient(this.config.token, {
@@ -60,9 +59,12 @@ export class CustomSlack {
   }
 
   ready(): Promise<string|void> {
-    if (this.config) {
+    if (this.config && this.enabled) {
       return this._ready;
     } else {
+      if (!this.enabled) {
+        return Promise.reject('Slack is not enabled');
+      }
       return Promise.reject(`You must call '.configure' before using Slack`)
     }
   }

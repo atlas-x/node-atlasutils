@@ -1,7 +1,7 @@
 import * as winston from 'winston';
 import { Slack } from './slack';
 export interface AtlasSlackTransportOptions {
-    token: string;
+    token?: string;
     channel: string;
     level?: string;
     name?: string;
