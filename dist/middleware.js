@@ -155,7 +155,11 @@ function sendError(req, res, status, error, next) {
             return res.status(status).render(CONFIG.errorView, error);
         }
         else {
-            next(error);
+            res.status(status);
+            let err = new Error(error.message);
+            err['status'] = error.status;
+            err['errno'] = error.status;
+            next(err);
         }
     }
 }
