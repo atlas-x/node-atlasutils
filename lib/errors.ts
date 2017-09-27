@@ -117,6 +117,8 @@ export function normalizeError(error: any) {
   return new ServerError(error);
 };
 
+CONFIG = _.merge({}, DEFAULT);
+
 export function configure(config: ErrorsConfig = {}) {
   CONFIG = _.merge({}, DEFAULT, config);
   if (!_.isFunction(CONFIG.normalize)) {

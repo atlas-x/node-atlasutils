@@ -120,6 +120,7 @@ function normalizeError(error) {
 }
 exports.normalizeError = normalizeError;
 ;
+CONFIG = _.merge({}, DEFAULT);
 function configure(config = {}) {
     CONFIG = _.merge({}, DEFAULT, config);
     if (!_.isFunction(CONFIG.normalize)) {
