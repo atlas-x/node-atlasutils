@@ -29,6 +29,9 @@ function logifenabled(args, method, warn, req) {
     CONFIG.logger[type].apply(CONFIG.logger, args);
 }
 exports.middleware = function middleware(req, res, next) {
+    req.expectsJSON = function () {
+        return expectsJSON(req);
+    };
     res.handleError = res.handleErrors = function (error) {
         error = errors.normalizeError(error);
         if (error instanceof errors.UserError) {
@@ -46,9 +49,6 @@ exports.middleware = function middleware(req, res, next) {
         else {
             return res.serverError(error);
         }
-    };
-    res.expectsJSON = function () {
-        return expectsJSON(req);
     };
     res.userError = function (data) {
         logifenabled(arguments, 'userError', true, req);

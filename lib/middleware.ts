@@ -44,6 +44,10 @@ function logifenabled(args, method, warn, req) {
 
 export let middleware = function middleware(req, res, next) {
   
+  req.expectsJSON = function() {
+    return expectsJSON(req);
+  };
+
   res.handleError = res.handleErrors = function(error) {
     error = errors.normalizeError(error);
     if (error instanceof errors.UserError) {
@@ -57,10 +61,6 @@ export let middleware = function middleware(req, res, next) {
     } else {
       return res.serverError(error);
     }
-  };
-
-  res.expectsJSON = function() {
-    return expectsJSON(req);
   };
 
   res.userError = function(data) {
