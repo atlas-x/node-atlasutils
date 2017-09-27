@@ -17,7 +17,7 @@ const DEFAULT: MiddlewareConfig = {
   logger: console,
   logUrl: true,
   getUser: function(req) {},
-  errorView: 'error'
+  errorView: null
 };
 
 
@@ -70,7 +70,7 @@ export let middleware = function middleware(req, res, next) {
     let error = extractDetails.apply(null, arguments);
     if (!error.message) { error.message = 'Bad Request'; }
     if (!error.status) { error.status = 400; }
-    return sendError(req, res, 400, error);
+    return sendError(req, res, 400, error, next);
   };
   res.badRequest = res.userError;
   
@@ -79,7 +79,7 @@ export let middleware = function middleware(req, res, next) {
     let error = extractDetails.apply(null, arguments);
     if (!error.message) { error.message = 'Unauthorized'; }
     if (!error.status) { error.status = 401; }
-    return sendError(req, res, 401, error);
+    return sendError(req, res, 401, error, next);
   };
 
   res.forbidden = function(data) {
@@ -87,7 +87,7 @@ export let middleware = function middleware(req, res, next) {
     let error = extractDetails.apply(null, arguments);
     if (!error.message) { error.message = 'Forbidden'; }
     if (!error.status) { error.status = 403; }
-    return sendError(req, res, 403, error);
+    return sendError(req, res, 403, error, next);
   };
 
   res.notFound = function(data) {
@@ -95,7 +95,7 @@ export let middleware = function middleware(req, res, next) {
     let error = extractDetails.apply(null, arguments);
     if (!error.message) { error.message = 'Not Found'; }
     if (!error.status) { error.status = 404; }
-    return sendError(req, res, 404, error);
+    return sendError(req, res, 404, error, next);
   };
 
   res.serverError = function(data) {
@@ -106,7 +106,7 @@ export let middleware = function middleware(req, res, next) {
     let error = extractDetails.apply(null, arguments);
     if (!error.message) { error.message = 'Server Error'; }
     if (!error.status) { error.status = 500; }
-    return sendError(req, res, 500, error);
+    return sendError(req, res, 500, error, next);
   };
 
   res.created = function(data) {
@@ -147,11 +147,15 @@ function extractDetails(...args) {
 }
 
   
-function sendError(req, res, status, error) {
+function sendError(req, res, status, error, next) {
   if (expectsJSON(req)) {
     return res.status(status).json(error);
   } else {
-    return res.status(status).render(CONFIG.errorView, error);
+    if (CONFIG.errorView) {
+      return res.status(status).render(CONFIG.errorView, error);
+    } else {
+      next(error);
+    }
   }
 }
 

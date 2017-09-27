@@ -8,7 +8,7 @@ const DEFAULT = {
     logger: console,
     logUrl: true,
     getUser: function (req) { },
-    errorView: 'error'
+    errorView: null
 };
 function logifenabled(args, method, warn, req) {
     if (!CONFIG.log.includes(method)) {
@@ -60,7 +60,7 @@ exports.middleware = function middleware(req, res, next) {
         if (!error.status) {
             error.status = 400;
         }
-        return sendError(req, res, 400, error);
+        return sendError(req, res, 400, error, next);
     };
     res.badRequest = res.userError;
     res.unauthorized = function (data) {
@@ -72,7 +72,7 @@ exports.middleware = function middleware(req, res, next) {
         if (!error.status) {
             error.status = 401;
         }
-        return sendError(req, res, 401, error);
+        return sendError(req, res, 401, error, next);
     };
     res.forbidden = function (data) {
         logifenabled(arguments, 'forbidden', true, req);
@@ -83,7 +83,7 @@ exports.middleware = function middleware(req, res, next) {
         if (!error.status) {
             error.status = 403;
         }
-        return sendError(req, res, 403, error);
+        return sendError(req, res, 403, error, next);
     };
     res.notFound = function (data) {
         logifenabled(arguments, 'notFound', true, req);
@@ -94,7 +94,7 @@ exports.middleware = function middleware(req, res, next) {
         if (!error.status) {
             error.status = 404;
         }
-        return sendError(req, res, 404, error);
+        return sendError(req, res, 404, error, next);
     };
     res.serverError = function (data) {
         if (data && data instanceof errors.DoneError) {
@@ -108,7 +108,7 @@ exports.middleware = function middleware(req, res, next) {
         if (!error.status) {
             error.status = 500;
         }
-        return sendError(req, res, 500, error);
+        return sendError(req, res, 500, error, next);
     };
     res.created = function (data) {
         res.status(201).json(data);
@@ -146,12 +146,17 @@ function extractDetails(...args) {
     }
     return error;
 }
-function sendError(req, res, status, error) {
+function sendError(req, res, status, error, next) {
     if (expectsJSON(req)) {
         return res.status(status).json(error);
     }
     else {
-        return res.status(status).render(CONFIG.errorView, error);
+        if (CONFIG.errorView) {
+            return res.status(status).render(CONFIG.errorView, error);
+        }
+        else {
+            next(error);
+        }
     }
 }
 function expectsJSON(req) {
