@@ -3,6 +3,7 @@ export interface MiddlewareConfig {
     logger?: any;
     logUrl?: boolean;
     getUser?: (req: any) => string | void;
+    errorView?: string;
 }
 export declare let middleware: (req: any, res: any, next: any) => void;
 export default middleware;

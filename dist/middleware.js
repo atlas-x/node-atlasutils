@@ -7,7 +7,8 @@ const DEFAULT = {
     log: ['serverError'],
     logger: console,
     logUrl: true,
-    getUser: function (req) { }
+    getUser: function (req) { },
+    errorView: 'error'
 };
 function logifenabled(args, method, warn, req) {
     if (!CONFIG.log.includes(method)) {
@@ -150,7 +151,7 @@ function sendError(req, res, status, error) {
         return res.status(status).json(error);
     }
     else {
-        return res.status(status).render('error', error);
+        return res.status(status).render(CONFIG.errorView, error);
     }
 }
 function expectsJSON(req) {

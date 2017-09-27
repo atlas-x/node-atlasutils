@@ -7,6 +7,7 @@ export interface MiddlewareConfig {
   logger?: any,
   logUrl?: boolean,
   getUser?: (req: any) => string|void;
+  errorView?: string;
 }
 
 
@@ -15,7 +16,8 @@ const DEFAULT: MiddlewareConfig = {
   log: ['serverError'],
   logger: console,
   logUrl: true,
-  getUser: function(req) {}
+  getUser: function(req) {},
+  errorView: 'error'
 };
 
 
@@ -149,7 +151,7 @@ function sendError(req, res, status, error) {
   if (expectsJSON(req)) {
     return res.status(status).json(error);
   } else {
-    return res.status(status).render('error', error);
+    return res.status(status).render(CONFIG.errorView, error);
   }
 }
 
