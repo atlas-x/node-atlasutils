@@ -1,6 +1,8 @@
 export declare class StatusError extends Error {
     name: string;
     status: number;
+    data: any;
+    constructor(message?: string, data?: any);
 }
 export declare class UserError extends StatusError {
     status: number;

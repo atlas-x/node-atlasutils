@@ -6,6 +6,12 @@ import * as _ from 'lodash';
 export class StatusError extends Error {
   public name:string = "StatusError";
   public status: number;
+  public data: any;
+
+  constructor(message?: string, data?: any) {
+    super(message);
+    this.data = data;
+  }
 }
 
 export class UserError extends StatusError {
@@ -79,6 +85,11 @@ export function normalizeError(error: any) {
     return error;
   }
 
+  let data;
+  if (error && error.data) {
+    data = error.data;
+  }
+
   if (error && error.statusCode >= 400) {
     let message;
     if (error.error) {
@@ -99,14 +110,14 @@ export function normalizeError(error: any) {
       message = JSON.stringify(message);
     }
     if (STATUS_CODE_ERRORS[error.statusCode]) {
-      return new STATUS_CODE_ERRORS[error.statusCode](message);
+      return new STATUS_CODE_ERRORS[error.statusCode](message, data);
     }
-    return new ServerError(message);
+    return new ServerError(message, data);
 
   }
 
   if (error.name === 'UnauthorizedError') {
-    return new UnauthorizedError(error);
+    return new UnauthorizedError(error, data);
   }
 
   let customNormalizedError = CONFIG.normalize(error, ERRORS);
@@ -114,7 +125,7 @@ export function normalizeError(error: any) {
     return customNormalizedError;
   }
 
-  return new ServerError(error);
+  return new ServerError(error, data);
 };
 
 CONFIG = _.merge({}, DEFAULT);

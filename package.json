@@ -1,6 +1,6 @@
 {
   "name": "atlasutils",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Modules for use in Atlas node projects",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

@@ -2,9 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const _ = require("lodash");
 class StatusError extends Error {
-    constructor() {
-        super(...arguments);
+    constructor(message, data) {
+        super(message);
         this.name = "StatusError";
+        this.data = data;
     }
 }
 exports.StatusError = StatusError;
@@ -83,6 +84,10 @@ function normalizeError(error) {
         error instanceof DoneError) {
         return error;
     }
+    let data;
+    if (error && error.data) {
+        data = error.data;
+    }
     if (error && error.statusCode >= 400) {
         let message;
         if (error.error) {
@@ -105,18 +110,18 @@ function normalizeError(error) {
             message = JSON.stringify(message);
         }
         if (STATUS_CODE_ERRORS[error.statusCode]) {
-            return new STATUS_CODE_ERRORS[error.statusCode](message);
+            return new STATUS_CODE_ERRORS[error.statusCode](message, data);
         }
-        return new ServerError(message);
+        return new ServerError(message, data);
     }
     if (error.name === 'UnauthorizedError') {
-        return new UnauthorizedError(error);
+        return new UnauthorizedError(error, data);
     }
     let customNormalizedError = CONFIG.normalize(error, ERRORS);
     if (customNormalizedError) {
         return customNormalizedError;
     }
-    return new ServerError(error);
+    return new ServerError(error, data);
 }
 exports.normalizeError = normalizeError;
 ;
