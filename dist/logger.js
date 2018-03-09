@@ -155,6 +155,9 @@ exports.Logger = (_a = class Logger {
                     if (arg['query']) {
                         temparg['query'] = arg['query'].replace(/\n/g, ' ').replace(/\r/g, '');
                     }
+                    if (arg['data']) {
+                        temparg['data'] = JSON.stringify(arg['data']);
+                    }
                     arg = temparg;
                 }
                 if (_.isPlainObject(arg)) {
