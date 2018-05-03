@@ -11,7 +11,6 @@ export interface MiddlewareConfig {
 }
 
 
-let CONFIG: MiddlewareConfig = {};
 const DEFAULT: MiddlewareConfig = {
   log: ['serverError'],
   logger: console,
@@ -19,6 +18,7 @@ const DEFAULT: MiddlewareConfig = {
   getUser: function(req) {},
   errorView: null
 };
+let CONFIG: MiddlewareConfig = DEFAULT;
 
 
 function logifenabled(args, method, warn, req) {
