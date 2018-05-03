@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const errors = require("./errors");
 const _ = require("lodash");
-let CONFIG = {};
 const DEFAULT = {
     log: ['serverError'],
     logger: console,
@@ -10,6 +9,7 @@ const DEFAULT = {
     getUser: function (req) { },
     errorView: null
 };
+let CONFIG = DEFAULT;
 function logifenabled(args, method, warn, req) {
     if (!CONFIG.log.includes(method)) {
         return;
