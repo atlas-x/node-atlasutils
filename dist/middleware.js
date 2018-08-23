@@ -2,12 +2,16 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const errors = require("./errors");
 const _ = require("lodash");
+const morgan = require("morgan");
+const split = require("split");
 const DEFAULT = {
     log: ['serverError'],
     logger: console,
     logUrl: true,
     getUser: function (req) { },
-    errorView: null
+    errorView: null,
+    blacklist: ['password'],
+    env: process.env.NODE_ENV || process.env.env || 'development'
 };
 let CONFIG = DEFAULT;
 function logifenabled(args, method, warn, req) {
@@ -178,3 +182,68 @@ function configure(config = {}) {
     }
 }
 exports.configure = configure;
+function logRequests(app) {
+    let morganformat = getMorgan();
+    if (morganformat) {
+        app.use(morgan(morganformat, {
+            skip: (req, res) => res.statusCode >= 500,
+            stream: split().on('data', data => CONFIG.logger.info(data))
+        }));
+        app.use(morgan(morganformat, {
+            skip: (req, res) => res.statusCode < 500,
+            stream: split().on('data', data => CONFIG.logger.error(data))
+        }));
+    }
+    return morganformat;
+}
+exports.logRequests = logRequests;
+function getMorgan() {
+    setupMorgan();
+    if (CONFIG.env === 'development') {
+        return ':method :user :method :url :status :response-time ms :body';
+    }
+    else if (CONFIG.env === 'test') {
+        return null;
+    }
+    else {
+        return ':remote-addr - :user :method :url :status :response-time ms :body';
+    }
+}
+function setupMorgan() {
+    morgan.token('body', (req, res) => {
+        if (req.method !== 'GET') {
+            return `body: ${truncate(req.body)}`;
+        }
+        else {
+            return '';
+        }
+    });
+    morgan.token('user', (req, res) => {
+        let user = CONFIG.getUser(req);
+        if (user) {
+            return `(${user})`;
+        }
+        return '';
+    });
+}
+function truncate(body) {
+    const MAX = 10000;
+    body = _.cloneDeep(body);
+    let bod = JSON.stringify(body, (key, val) => {
+        for (let ii = 0; ii < CONFIG.blacklist.length; ii++) {
+            let bl = CONFIG.blacklist[ii];
+            // remove wildcard tokens
+            if (bl.indexOf('*') >= 0 && key.indexOf(bl.substr(0, bl.length - 1)) >= 0) {
+                return '*****';
+            }
+            else if (bl === key) {
+                return '*****';
+            }
+        }
+        return val;
+    });
+    if (bod.length > MAX) {
+        return bod.substr(0, MAX) + " ... (truncated)";
+    }
+    return bod;
+}

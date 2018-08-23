@@ -1,6 +1,6 @@
 'use strict';
 
-import {configure, MiddlewareConfig} from '../lib/middleware';
+import {configure, MiddlewareConfig, logRequests} from '../lib/middleware';
 import mw from '../lib/middleware';
 import * as utils from '../lib';
 
@@ -111,5 +111,15 @@ describe('Middleware', () => {
       res.serverError('test');
       expect(logger.error).toHaveBeenLastCalledWith('test');
     });
+
+    it(`should setup morgan`, () => {
+      configure({logger});
+      let app = {
+        use: use
+      };
+      let format = logRequests(app);
+      expect(format).toBeDefined();
+    });
   });
+
 })
