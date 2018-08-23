@@ -1,4 +1,3 @@
-/// <reference types="winston" />
 import { TransportOptions, LoggerInstance } from 'winston';
 import 'winston-daily-rotate-file';
 import './winston-atlasslack';

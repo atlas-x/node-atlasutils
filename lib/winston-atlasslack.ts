@@ -27,10 +27,12 @@ const DEFAULTS = {
 };
 
 export class AtlasSlack extends winston.Transport {
-  public token: string;
-  public channel: string;
-  public slack: Slack;
-  public env: string;
+  token: string;
+  channel: string;
+  slack: Slack;
+  env: string;
+  name: string;
+  level: string;
   
   constructor(options: AtlasSlackTransportOptions) {
     super(options);

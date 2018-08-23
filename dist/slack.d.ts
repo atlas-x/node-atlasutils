@@ -1,3 +1,4 @@
+import { RTMCallResult } from '@slack/client';
 export interface SlackConfig {
     enabled?: boolean;
     token?: string;
@@ -15,12 +16,12 @@ export declare class CustomSlack {
     ready(): Promise<string | void>;
     disconnect(): void;
     tagUser(name: string): string;
-    send(channel: string, text: string): Promise<string | void>;
+    send(channel: string, text: string): Promise<string | void | RTMCallResult>;
 }
 export declare class Slack {
     slack: CustomSlack;
     constructor(config?: SlackConfig);
-    send(channel: string, text: string): Promise<string | void>;
+    send(channel: string, text: string): Promise<string | void | RTMCallResult>;
     tagUser(name: string): string;
     disconnect(): void;
     configure(config: SlackConfig): void;

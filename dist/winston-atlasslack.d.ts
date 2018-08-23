@@ -14,6 +14,8 @@ export declare class AtlasSlack extends winston.Transport {
     channel: string;
     slack: Slack;
     env: string;
+    name: string;
+    level: string;
     constructor(options: AtlasSlackTransportOptions);
     log(level: string, msg: string, meta: any, callback?: Function): void;
 }

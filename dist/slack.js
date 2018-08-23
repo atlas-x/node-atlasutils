@@ -1,7 +1,6 @@
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
-const SlackClient = require("@slack/client");
-let RTM_EVENTS = SlackClient.CLIENT_EVENTS.RTM;
+const client_1 = require("@slack/client");
 const _ = require("lodash");
 const DEFAULT = {
     enabled: true,
@@ -24,12 +23,13 @@ class CustomSlack {
         if (!this.enabled) {
             return;
         }
-        this._slack = new SlackClient.RtmClient(this.config.token, {
-            logLevel: 'none'
+        this._slack = new client_1.RTMClient(this.config.token, {
+            logLevel: client_1.LogLevel.ERROR,
+            useRtmConnect: false
         });
-        this._slack.start();
+        this._slack.start({});
         this._ready = new Promise((resolve, reject) => {
-            this._slack.on(RTM_EVENTS.AUTHENTICATED, info => {
+            this._slack.on('authenticated', info => {
                 this.info = info;
                 this.name = info.self.name;
                 this.users = info.users.filter(u => !u.deleted);
@@ -43,7 +43,7 @@ class CustomSlack {
                     this.channels[group.name_normalized] = group;
                 }
             });
-            this._slack.on(RTM_EVENTS.RTM_CONNECTION_OPENED, err => {
+            this._slack.on('ready', err => {
                 if (err) {
                     return reject(err);
                 }
@@ -87,12 +87,7 @@ class CustomSlack {
             if (!this.channels[channel]) {
                 return Promise.reject(`Could not find #${channel} (maybe ${this.name} is not invited?)`);
             }
-            return this._slack.send({
-                text: text,
-                channel: this.channels[channel].id,
-                type: 'message',
-                parse: true
-            })
+            return this._slack.sendMessage(text, this.channels[channel].id)
                 .catch(err => {
                 console.error(JSON.stringify(err));
             });

@@ -1,7 +1,7 @@
 'use strict';
 
-import * as SlackClient from '@slack/client';
-let RTM_EVENTS = SlackClient.CLIENT_EVENTS.RTM;
+import { RTMClient, LogLevel, RTMCallResult } from '@slack/client';
+
 import * as _ from 'lodash';
 import * as util from 'util';
 
@@ -22,7 +22,7 @@ export class CustomSlack {
   channels: any = {};
   config: SlackConfig|null = null;
   private _ready = null;
-  private _slack = null;
+  private _slack: RTMClient = null;
   info: any = null;
   name: string = null;
 
@@ -32,12 +32,13 @@ export class CustomSlack {
     if (!this.enabled) {
       return;
     }
-    this._slack = new SlackClient.RtmClient(this.config.token, {
-      logLevel: 'none'
+    this._slack = new RTMClient(this.config.token, {
+      logLevel: LogLevel.ERROR,
+      useRtmConnect: false
     });
-    this._slack.start();
+    this._slack.start({});
     this._ready = new Promise((resolve, reject) => {
-      this._slack.on(RTM_EVENTS.AUTHENTICATED, info => {
+      this._slack.on('authenticated', info  => {
         this.info = info;
         this.name = info.self.name;
         this.users = info.users.filter(u => !u.deleted);
@@ -51,7 +52,7 @@ export class CustomSlack {
           this.channels[group.name_normalized] = group;
         }
       });
-      this._slack.on(RTM_EVENTS.RTM_CONNECTION_OPENED, err => {
+      this._slack.on('ready', err => {
         if (err) { return reject(err); }
         resolve();
       });
@@ -91,20 +92,15 @@ export class CustomSlack {
     return tag;
   }
 
-  send (channel: string, text: string): Promise<string|void> {
+  send (channel: string, text: string): Promise<string|void|RTMCallResult> {
     return this.ready().then(() => {
       if (!this.channels[channel]) {
         return Promise.reject(`Could not find #${channel} (maybe ${this.name} is not invited?)`);
       }
-      return this._slack.send({
-        text: text,
-        channel: this.channels[channel].id,
-        type: 'message',
-        parse: true
-      })
-      .catch(err => {
-        console.error(JSON.stringify(err));
-      });
+      return this._slack.sendMessage(text, this.channels[channel].id)
+        .catch(err => {
+          console.error(JSON.stringify(err));
+        });
     });
   }
 }
@@ -120,7 +116,7 @@ export class Slack {
     }
   }
   
-  send(channel: string, text: string): Promise<string|void> {
+  send(channel: string, text: string): Promise<string|void|RTMCallResult> {
     return this.slack.send(channel, text);
   }
 

@@ -3,6 +3,7 @@
 import {configure} from '../lib/slack';
 import slack from '../lib/slack';
 import * as utils from '../lib';
+import { RTMCallResult } from '@slack/client';
 
 describe('Slack', () => {
   describe('Stability', () => {
@@ -46,5 +47,16 @@ describe('Slack', () => {
       expect(slack.tagUser('dunphy')).toBe('<@U666>');
       expect(slack.tagUser('joke')).toBe('joke');
     });
+
+    it('should send a message', async () => {
+      await slack.slack.ready();
+        
+      return slack.send(process.env.SLACK_CHANNEL, `This is a test ${slack.tagUser('atlasbot')}`)
+        .then((message: RTMCallResult) => {
+          expect(message).toBeDefined();
+          expect(slack.slack.users.length).toBeGreaterThan(0);
+          expect(message.error).toBeUndefined();
+        });
+    })
   });
 });

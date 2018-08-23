@@ -1,5 +1,7 @@
-'use strict';
+"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var _a;
+'use strict';
 const winston = require("winston");
 require("winston-daily-rotate-file");
 require("./winston-atlasslack");
@@ -184,4 +186,3 @@ function configure(config = {}) {
     exports.Logger.winston = WINSTON;
 }
 exports.configure = configure;
-var _a;
