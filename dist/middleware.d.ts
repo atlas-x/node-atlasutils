@@ -6,6 +6,7 @@ export interface MiddlewareConfig {
     errorView?: string;
     blacklist?: string[];
     env?: string;
+    truncate?: number;
 }
 export declare let middleware: (req: any, res: any, next: any) => void;
 export default middleware;

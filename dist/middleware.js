@@ -11,7 +11,8 @@ const DEFAULT = {
     getUser: function (req) { },
     errorView: null,
     blacklist: ['password'],
-    env: process.env.NODE_ENV || process.env.env || 'development'
+    env: process.env.NODE_ENV || process.env.env || 'development',
+    truncate: 1000,
 };
 let CONFIG = DEFAULT;
 function logifenabled(args, method, warn, req) {
@@ -227,7 +228,6 @@ function setupMorgan() {
     });
 }
 function truncate(body) {
-    const MAX = 10000;
     body = _.cloneDeep(body);
     let bod = JSON.stringify(body, (key, val) => {
         for (let ii = 0; ii < CONFIG.blacklist.length; ii++) {
@@ -242,8 +242,8 @@ function truncate(body) {
         }
         return val;
     });
-    if (bod.length > MAX) {
-        return bod.substr(0, MAX) + " ... (truncated)";
+    if (bod.length > CONFIG.truncate) {
+        return bod.substr(0, CONFIG.truncate) + " ... (truncated)";
     }
     return bod;
 }
