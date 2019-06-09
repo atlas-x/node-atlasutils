@@ -1,4 +1,4 @@
-import { RTMCallResult } from '@slack/client';
+import { WebAPICallResult } from '@slack/web-api';
 export interface SlackConfig {
     enabled?: boolean;
     token?: string;
@@ -6,24 +6,25 @@ export interface SlackConfig {
 export declare class CustomSlack {
     enabled: boolean;
     users: any[];
-    channels: any;
+    conversations: {};
     config: SlackConfig | null;
     private _ready;
     private _slack;
     info: any;
     name: string;
+    list(resource: string, args: any, key: string): Promise<any>;
     configure(config: any): void;
     ready(): Promise<string | void>;
-    disconnect(): void;
     tagUser(name: string): string;
-    send(channel: string, text: string): Promise<string | void | RTMCallResult>;
+    send(channel: string, text: string): Promise<string | void | WebAPICallResult>;
+    logError(channel: string, error: string, title?: string): Promise<string | void | WebAPICallResult>;
 }
 export declare class Slack {
     slack: CustomSlack;
     constructor(config?: SlackConfig);
-    send(channel: string, text: string): Promise<string | void | RTMCallResult>;
+    send(channel: string, text: string): Promise<string | void | WebAPICallResult>;
+    logError(channel: string, error: string, title?: string): Promise<string | void | WebAPICallResult>;
     tagUser(name: string): string;
-    disconnect(): void;
     configure(config: SlackConfig): void;
     instance(): Slack;
 }

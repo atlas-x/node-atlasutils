@@ -66,9 +66,9 @@ export class AtlasSlack extends winston.Transport {
       msg = pre + post;
     }
     
-    let slackmsg = `${this.env.toUpperCase()} ${msg}`;
+    let slackmsg = `${this.env.toUpperCase()} ${level.toUpperCase()} ${msg}`;
   
-    this.slack.send(this.channel, slackmsg)
+    this.slack.logError(this.channel, slackmsg, level)
       .then(() => {
         callback(null, true);
       })

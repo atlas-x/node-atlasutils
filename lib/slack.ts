@@ -1,6 +1,6 @@
 'use strict';
 
-import { RTMClient, LogLevel, RTMCallResult } from '@slack/client';
+import { WebClient, LogLevel, WebAPICallResult } from '@slack/web-api';
 
 import * as _ from 'lodash';
 import * as util from 'util';
@@ -19,43 +19,64 @@ const DEFAULT: SlackConfig = {
 export class CustomSlack {
   enabled: boolean = false;
   users: any[] = [];
-  channels: any = {};
+  conversations = {};
   config: SlackConfig|null = null;
   private _ready = null;
-  private _slack: RTMClient = null;
+  private _slack: WebClient = null;
   info: any = null;
   name: string = null;
+
+  async list(resource: string, args: any, key: string) {
+    let results = [];
+    let done = await this._slack.paginate(resource, args, 
+      (page: any) => !(page[key] && page[key].length),
+      (accumulator: any, page: any) => {
+        if (!accumulator) { accumulator = []; }
+        accumulator = accumulator.concat(page[key]);
+        return accumulator;
+      }
+    );
+    return done;
+  }
 
   configure(config) {
     this.config = _.merge({}, DEFAULT, config);
     this.enabled = this.config.enabled;
     if (!this.enabled) {
+      this._ready = Promise.reject('Slack is not enabled');
       return;
     }
-    this._slack = new RTMClient(this.config.token, {
+    if (!this.config.token) {
+      this._ready = Promise.reject('token is required');
+      return;
+    }
+    this._slack = new WebClient(this.config.token, {
       logLevel: LogLevel.ERROR,
-      useRtmConnect: false
+      rejectRateLimitedCalls: true
     });
-    this._slack.start({});
-    this._ready = new Promise((resolve, reject) => {
-      this._slack.on('authenticated', info  => {
+    
+    this._ready = new Promise(async (resolve, reject) => {
+      try {
+        let self = await this._slack.auth.test();
+        this.name = <string>self.user;
+        let [info, users, conversations] = await Promise.all([
+          this._slack.team.info().then(res => res.team),
+          this.list('users.list', {}, 'members'),
+          this.list('conversations.list', {types: 'public_channel,private_channel'}, 'channels')
+        ]);
+      
+      
         this.info = info;
-        this.name = info.self.name;
-        this.users = info.users.filter(u => !u.deleted);
-        this.channels = {};
-        for (let channel of info.channels) {
-          if (channel.is_member) {
-            this.channels[channel.name_normalized] = channel;
+        this.users = <any[]>users;
+        for (let convo of <any[]>conversations) {
+          if (convo.is_member) {
+            this.conversations[convo.name_normalized] = convo;
           }
         }
-        for (let group of info.groups) {
-          this.channels[group.name_normalized] = group;
-        }
-      });
-      this._slack.on('ready', err => {
-        if (err) { return reject(err); }
         resolve();
-      });
+      } catch (e) {
+        reject(e);
+      }
     });
   }
 
@@ -68,10 +89,6 @@ export class CustomSlack {
       }
       return Promise.reject(`You must call '.configure' before using Slack`)
     }
-  }
-
-  disconnect() {
-    this._slack.disconnect();
   }
 
   tagUser (name: string): string {
@@ -92,16 +109,36 @@ export class CustomSlack {
     return tag;
   }
 
-  send (channel: string, text: string): Promise<string|void|RTMCallResult> {
-    return this.ready().then(() => {
-      if (!this.channels[channel]) {
-        return Promise.reject(`Could not find #${channel} (maybe ${this.name} is not invited?)`);
-      }
-      return this._slack.sendMessage(text, this.channels[channel].id)
-        .catch(err => {
-          console.error(JSON.stringify(err));
-        });
+  async send (channel: string, text: string): Promise<string|void|WebAPICallResult> {
+    await this.ready();
+    if (!this.conversations[channel]) {
+      return Promise.reject(`Could not find #${channel} (maybe ${this.name} is not invited?)`);
+    }
+
+    let res = await this._slack.chat.postMessage({
+      text,
+      channel: this.conversations[channel].id
     });
+    
+    return res;
+  }
+
+  async logError(channel: string, error: string, title: string = 'error'): Promise<string|void|WebAPICallResult> {
+    await this.ready();
+    if (!this.conversations[channel]) {
+      return Promise.reject(`Could not find #${channel} (maybe ${this.name} is not invited?)`);
+    }
+
+    let filename = `${(new Date()).toISOString()} ${title}.log`;
+
+    let res = await this._slack.files.upload({
+      channels: this.conversations[channel].id,
+      filename,
+      content: error,
+      filetype: 'javascript'
+    });
+
+    return res;
   }
 }
 
@@ -116,21 +153,19 @@ export class Slack {
     }
   }
   
-  send(channel: string, text: string): Promise<string|void|RTMCallResult> {
+  send(channel: string, text: string): Promise<string|void|WebAPICallResult> {
     return this.slack.send(channel, text);
   }
+
+  logError(channel: string, error: string, title?: string): Promise<string|void|WebAPICallResult> {
+    return this.slack.logError(channel, error, title);
+  }
+
 
   tagUser(name: string): string {
     return this.slack.tagUser(name);
   }
-  disconnect() {
-    if (this.slack) {
-      this.slack.disconnect();
-      this.slack = null;
-    }
-  }
   configure(config: SlackConfig) {
-    this.disconnect();
     this.slack = new CustomSlack();
     this.slack.configure(config);
   }

@@ -51,6 +51,7 @@ describe('winston-atlasslack', () => {
       channel: 'general',
       env: 'testing'
     });
+    trans.slack.logError = jest.fn(() => Promise.resolve());
     trans.slack.send = jest.fn(() => Promise.resolve());
     let winny = new winston.Logger({transports: [trans]});
     return {trans, winny};
@@ -65,10 +66,10 @@ describe('winston-atlasslack', () => {
     it('should call callback on success', (done) => {
       let {trans, winny} = getWinston();
       winny.log('warn', 'hi', {}, function(err, level, msg, meta) {
-        expect(trans.slack.send).toHaveBeenCalledTimes(1);
-        expect(trans.slack.send.mock.calls[0][0]).toBe('general');
+        expect(trans.slack.logError).toHaveBeenCalledTimes(1);
+        expect(trans.slack.logError.mock.calls[0][0]).toBe('general');
         let date = (new Date()).toISOString().substr(0, 10);
-        expect(trans.slack.send.mock.calls[0][1].substr(0, 16)).toBe(`TESTING hi`);
+        expect(trans.slack.logError.mock.calls[0][1].substr(0, 16)).toBe(`TESTING WARN hi`);
         expect(err).toBeNull();
 
         done();
@@ -77,14 +78,14 @@ describe('winston-atlasslack', () => {
 
     it('should call callback on failure', (done) => {
       let {trans, winny} = getWinston();
-      trans.slack.send = jest.fn(() => Promise.reject('error!'));
+      trans.slack.logError = jest.fn(() => Promise.reject('error!'));
       let called = 0;
       // don't know why, but winston needs this to be a normal function, not arrowed
       winny.log('warn', 'hi', {}, function(err, level, msg, meta) {
         called += 1;
         // this function gets called on error and then again when all transports are complete
         if (called === 1) {
-          expect(trans.slack.send).toHaveBeenCalledTimes(1);
+          expect(trans.slack.logError).toHaveBeenCalledTimes(1);
           expect(err).toBe('error!');
         }
         done();
@@ -102,7 +103,7 @@ describe('winston-atlasslack', () => {
           test`;
       winny.log('warn', msg, {}, function(err, level, msg, meta) {
         expect(err).toBeNull();
-        expect(trans.slack.send.mock.calls[0][1]).toBe(`TESTING hi test
+        expect(trans.slack.logError.mock.calls[0][1]).toBe(`TESTING WARN hi test
           stack:
           this
           is

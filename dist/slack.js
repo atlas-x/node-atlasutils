@@ -1,6 +1,14 @@
 'use strict';
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const client_1 = require("@slack/client");
+const web_api_1 = require("@slack/web-api");
 const _ = require("lodash");
 const DEFAULT = {
     enabled: true,
@@ -10,46 +18,63 @@ class CustomSlack {
     constructor() {
         this.enabled = false;
         this.users = [];
-        this.channels = {};
+        this.conversations = {};
         this.config = null;
         this._ready = null;
         this._slack = null;
         this.info = null;
         this.name = null;
     }
+    list(resource, args, key) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let results = [];
+            let done = yield this._slack.paginate(resource, args, (page) => !(page[key] && page[key].length), (accumulator, page) => {
+                if (!accumulator) {
+                    accumulator = [];
+                }
+                accumulator = accumulator.concat(page[key]);
+                return accumulator;
+            });
+            return done;
+        });
+    }
     configure(config) {
         this.config = _.merge({}, DEFAULT, config);
         this.enabled = this.config.enabled;
         if (!this.enabled) {
+            this._ready = Promise.reject('Slack is not enabled');
             return;
         }
-        this._slack = new client_1.RTMClient(this.config.token, {
-            logLevel: client_1.LogLevel.ERROR,
-            useRtmConnect: false
+        if (!this.config.token) {
+            this._ready = Promise.reject('token is required');
+            return;
+        }
+        this._slack = new web_api_1.WebClient(this.config.token, {
+            logLevel: web_api_1.LogLevel.ERROR,
+            rejectRateLimitedCalls: true
         });
-        this._slack.start({});
-        this._ready = new Promise((resolve, reject) => {
-            this._slack.on('authenticated', info => {
+        this._ready = new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                let self = yield this._slack.auth.test();
+                this.name = self.user;
+                let [info, users, conversations] = yield Promise.all([
+                    this._slack.team.info().then(res => res.team),
+                    this.list('users.list', {}, 'members'),
+                    this.list('conversations.list', { types: 'public_channel,private_channel' }, 'channels')
+                ]);
                 this.info = info;
-                this.name = info.self.name;
-                this.users = info.users.filter(u => !u.deleted);
-                this.channels = {};
-                for (let channel of info.channels) {
-                    if (channel.is_member) {
-                        this.channels[channel.name_normalized] = channel;
+                this.users = users;
+                for (let convo of conversations) {
+                    if (convo.is_member) {
+                        this.conversations[convo.name_normalized] = convo;
                     }
                 }
-                for (let group of info.groups) {
-                    this.channels[group.name_normalized] = group;
-                }
-            });
-            this._slack.on('ready', err => {
-                if (err) {
-                    return reject(err);
-                }
                 resolve();
-            });
-        });
+            }
+            catch (e) {
+                reject(e);
+            }
+        }));
     }
     ready() {
         if (this.config && this.enabled) {
@@ -61,9 +86,6 @@ class CustomSlack {
             }
             return Promise.reject(`You must call '.configure' before using Slack`);
         }
-    }
-    disconnect() {
-        this._slack.disconnect();
     }
     tagUser(name) {
         name = name.trim();
@@ -83,14 +105,32 @@ class CustomSlack {
         return tag;
     }
     send(channel, text) {
-        return this.ready().then(() => {
-            if (!this.channels[channel]) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.ready();
+            if (!this.conversations[channel]) {
                 return Promise.reject(`Could not find #${channel} (maybe ${this.name} is not invited?)`);
             }
-            return this._slack.sendMessage(text, this.channels[channel].id)
-                .catch(err => {
-                console.error(JSON.stringify(err));
+            let res = yield this._slack.chat.postMessage({
+                text,
+                channel: this.conversations[channel].id
             });
+            return res;
+        });
+    }
+    logError(channel, error, title = 'error') {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.ready();
+            if (!this.conversations[channel]) {
+                return Promise.reject(`Could not find #${channel} (maybe ${this.name} is not invited?)`);
+            }
+            let filename = `${(new Date()).toISOString()} ${title}.log`;
+            let res = yield this._slack.files.upload({
+                channels: this.conversations[channel].id,
+                filename,
+                content: error,
+                filetype: 'javascript'
+            });
+            return res;
         });
     }
 }
@@ -107,17 +147,13 @@ class Slack {
     send(channel, text) {
         return this.slack.send(channel, text);
     }
+    logError(channel, error, title) {
+        return this.slack.logError(channel, error, title);
+    }
     tagUser(name) {
         return this.slack.tagUser(name);
     }
-    disconnect() {
-        if (this.slack) {
-            this.slack.disconnect();
-            this.slack = null;
-        }
-    }
     configure(config) {
-        this.disconnect();
         this.slack = new CustomSlack();
         this.slack.configure(config);
     }

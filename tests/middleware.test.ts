@@ -59,7 +59,7 @@ describe('Middleware', () => {
       expect(logger.warn).toHaveBeenCalledTimes(0);
     });
 
-    it(`shoudl allow configuring log levels`, () => {
+    it(`should allow configuring log levels`, () => {
       
       configure({logger: logger, log: ['serverError', 'forbidden']});
       

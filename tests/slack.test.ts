@@ -3,58 +3,60 @@
 import {configure} from '../lib/slack';
 import slack from '../lib/slack';
 import * as utils from '../lib';
-import { RTMCallResult } from '@slack/client';
+import { WebAPICallResult } from '@slack/web-api';
 
 describe('Slack', () => {
   describe('Stability', () => {
 
     it(`shouldn't crash on configures`, () => {
+      expect.assertions(1);
       configure();
       utils.configureSlack();
+      expect(slack.slack.ready()).rejects.toBeDefined();
     });
 
     it(`should require configure before use`, () => {
+      expect.assertions(1);
       expect(slack.send('1', '2')).rejects.toBeDefined();
     });
   });
 
   describe('Logic', () => {
     let channel;
-    beforeEach(() => {
+    beforeAll(async () => {
       if (!process.env.SLACK_TOKEN || !process.env.SLACK_CHANNEL) {
         throw new Error('must export env variables SLACK_TOKEN and SLACK_CHANNEL');
       }
       channel = process.env.SLACK_CHANNEL;
 
-      return slack.configure({token: process.env.SLACK_TOKEN});
+      slack.configure({token: process.env.SLACK_TOKEN});
+      await slack.slack.ready();
     });
-
-    afterEach(() => {
-      slack.disconnect();
-    });
-
-    // it('should send to a channel', () => {
-    //   jest.setTimeout(5000);
-    //   return slack.send(channel, 'test')
-    // });
 
     it('should tag a user', () => {
-      slack.slack.users = [
-        {name: 'jon', id: 'U555'},
-        {name: 'phil', profile: {last_name: 'dunphy'}, id: 'U666'}
-      ];
-      expect(slack.tagUser('jon')).toBe('<@U555>');
-      expect(slack.tagUser('dunphy')).toBe('<@U666>');
+      slack.slack.users.push(...[
+        {name: 'abcde', id: 'U555'},
+        {name: 'fghij', profile: {last_name: 'klmno'}, id: 'U666'}
+      ]);
+      expect(slack.tagUser('abcde')).toBe('<@U555>');
+      expect(slack.tagUser('klmno')).toBe('<@U666>');
       expect(slack.tagUser('joke')).toBe('joke');
     });
 
     it('should send a message', async () => {
-      await slack.slack.ready();
-        
+
       return slack.send(process.env.SLACK_CHANNEL, `This is a test ${slack.tagUser('atlasbot')}`)
-        .then((message: RTMCallResult) => {
+        .then((message: WebAPICallResult) => {
           expect(message).toBeDefined();
           expect(slack.slack.users.length).toBeGreaterThan(0);
+          expect(message.error).toBeUndefined();
+        });
+    });
+
+    it('should upload a snippet', async() => {
+      return slack.logError(process.env.SLACK_CHANNEL, `PRODUCTION 192.168.0.1:8080 - testing@atlas-x.com - dev.atlas-x.com - "POST /api/tests HTTP/1.1" 500 - "https://dev.atlas-x.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36" body:{}`)
+        .then((message: WebAPICallResult) => {
+          expect(message).toBeDefined();
           expect(message.error).toBeUndefined();
         });
     })
