@@ -11,7 +11,7 @@
     "@slack/client": "^4.4.0",
     "@slack/web-api": "^5.0.1",
     "@types/winston": "^2.3.5",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.19",
     "moment": "^2.22.2",
     "morgan": "^1.9.1",
     "split": "^1.0.1",
