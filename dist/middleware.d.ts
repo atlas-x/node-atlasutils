@@ -7,6 +7,7 @@ export interface MiddlewareConfig {
     blacklist?: string[];
     env?: string;
     truncate?: number;
+    morgan?: string;
 }
 export declare let middleware: (req: any, res: any, next: any) => void;
 export default middleware;

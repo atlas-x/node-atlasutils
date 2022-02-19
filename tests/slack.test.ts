@@ -4,6 +4,7 @@ import {configure} from '../lib/slack';
 import slack from '../lib/slack';
 import * as utils from '../lib';
 import { WebAPICallResult } from '@slack/web-api';
+import { SlackMemberProfile, SlackMember, SlackUserGroup } from '../lib/slack-extensions';
 
 describe('Slack', () => {
   describe('Stability', () => {
@@ -29,12 +30,12 @@ describe('Slack', () => {
       }
       channel = process.env.SLACK_CHANNEL;
 
-      slack.configure({token: process.env.SLACK_TOKEN});
+      slack.configure({enabled: true, token: process.env.SLACK_TOKEN});
       await slack.slack.ready();
     });
 
     it('should tag a user', () => {
-      slack.slack.users.push(...[
+      slack.slack.users.push(...<SlackMember[]>[
         {name: 'abcde', id: 'U555'},
         {name: 'fghij', profile: {last_name: 'klmno'}, id: 'U666'}
       ]);
@@ -43,21 +44,31 @@ describe('Slack', () => {
       expect(slack.tagUser('joke')).toBe('joke');
     });
 
+    it('should tag a group', () => {
+      slack.slack.groups.push(...<SlackUserGroup[]>[
+        {name: 'fakename', id: '1234', handle: 'devs'},
+        {name: 'what', id: '2345', handle: 'ever'}
+      ]);
+      expect(slack.tagUser('devs')).toBe(`<!subteam^1234>`);
+      expect(slack.tagUser('what')).toBe(`<!subteam^2345>`);
+    })
+
+
     it('should send a message', async () => {
 
       return slack.send(process.env.SLACK_CHANNEL, `This is a test ${slack.tagUser('atlasbot')}`)
-        .then((message: WebAPICallResult) => {
+        .then((message) => {
           expect(message).toBeDefined();
           expect(slack.slack.users.length).toBeGreaterThan(0);
-          expect(message.error).toBeUndefined();
+          expect((<WebAPICallResult>message).error).toBeUndefined();
         });
     });
 
     it('should upload a snippet', async() => {
       return slack.logError(process.env.SLACK_CHANNEL, `PRODUCTION 192.168.0.1:8080 - testing@atlas-x.com - dev.atlas-x.com - "POST /api/tests HTTP/1.1" 500 - "https://dev.atlas-x.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36" body:{}`)
-        .then((message: WebAPICallResult) => {
+        .then((message) => {
           expect(message).toBeDefined();
-          expect(message.error).toBeUndefined();
+          expect((<WebAPICallResult>message).error).toBeUndefined();
         });
     })
   });

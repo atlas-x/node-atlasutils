@@ -1,10 +1,10 @@
 import * as winston from 'winston';
 import '../lib/winston-atlasslack';
 import {AtlasSlack} from '../lib/winston-atlasslack';
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 describe('winston-atlasslack', () => {
-  it('should succeed on constructor', () => {
+  it.only('should succeed on constructor', () => {
     let transport = new (AtlasSlack)({
       token: '555',
       channel: 'general'

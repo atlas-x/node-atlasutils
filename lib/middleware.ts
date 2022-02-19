@@ -14,6 +14,7 @@ export interface MiddlewareConfig {
   blacklist?: string[];
   env?: string;
   truncate?: number;
+  morgan?: string;
 }
 
 
@@ -26,6 +27,7 @@ const DEFAULT: MiddlewareConfig = {
   blacklist: ['password'],
   env: process.env.NODE_ENV || process.env.env || 'development',
   truncate: 1000,
+  morgan: null
 };
 let CONFIG: MiddlewareConfig = DEFAULT;
 
@@ -205,8 +207,11 @@ export function logRequests(app) {
 
 function getMorgan() {
   setupMorgan();
+  if (CONFIG.morgan) {
+    return CONFIG.morgan;
+  }
   if (CONFIG.env === 'development') {
-    return ':method :user :method :url :status :response-time ms :body';
+    return ':user :method :url :status :response-time ms :body';
   } else if (CONFIG.env === 'test') {
     return null;
   } else {

@@ -1,11 +1,13 @@
 import { WebAPICallResult } from '@slack/web-api';
+import { SlackMember, SlackUserGroup } from './slack-extensions';
 export interface SlackConfig {
     enabled?: boolean;
     token?: string;
 }
 export declare class CustomSlack {
     enabled: boolean;
-    users: any[];
+    users: SlackMember[];
+    groups: SlackUserGroup[];
     conversations: {};
     config: SlackConfig | null;
     private _ready;

@@ -27,11 +27,16 @@ class AtlasSlack extends winston.Transport {
         this.env = options.env;
         this['timestamp'] = options.timestamp;
         this['formatter'] = options.formatter;
-        if (this.token) {
-            this.slack = new slack_2.Slack({ token: this.token });
+        try {
+            if (this.token) {
+                this.slack = new slack_2.Slack({ token: this.token });
+            }
+            else {
+                this.slack = slack_1.default;
+            }
         }
-        else {
-            this.slack = slack_1.default;
+        catch (e) {
+            console.error(e);
         }
     }
     log(level, msg, meta, callback) {

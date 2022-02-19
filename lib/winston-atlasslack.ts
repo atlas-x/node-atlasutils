@@ -44,11 +44,16 @@ export class AtlasSlack extends winston.Transport {
     this.env = options.env;
     this['timestamp'] = options.timestamp;
     this['formatter'] = options.formatter;
-    if (this.token) {
-      this.slack = new Slack({token: this.token});
-    } else {
-      this.slack = slack;
+    try {
+      if (this.token) {
+        this.slack = new Slack({token: this.token});
+      } else {
+        this.slack = slack;
+      }
+    } catch (e) {
+      console.error(e);
     }
+  
   }
 
   log(level: string, msg: string, meta: any, callback?: Function) {

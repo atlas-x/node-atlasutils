@@ -18,6 +18,7 @@ class CustomSlack {
     constructor() {
         this.enabled = false;
         this.users = [];
+        this.groups = [];
         this.conversations = {};
         this.config = null;
         this._ready = null;
@@ -42,42 +43,53 @@ class CustomSlack {
         this.config = _.merge({}, DEFAULT, config);
         this.enabled = this.config.enabled;
         if (!this.enabled) {
-            this._ready = Promise.reject('Slack is not enabled');
             return;
         }
         if (!this.config.token) {
             this._ready = Promise.reject('token is required');
             return;
         }
-        this._slack = new web_api_1.WebClient(this.config.token, {
-            logLevel: web_api_1.LogLevel.ERROR,
-            rejectRateLimitedCalls: true
-        });
-        this._ready = new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-            try {
-                let self = yield this._slack.auth.test();
-                this.name = self.user;
-                let [info, users, conversations] = yield Promise.all([
-                    this._slack.team.info().then(res => res.team),
-                    this.list('users.list', {}, 'members'),
-                    this.list('conversations.list', { types: 'public_channel,private_channel' }, 'channels')
-                ]);
-                this.info = info;
-                this.users = users;
-                for (let convo of conversations) {
-                    if (convo.is_member) {
-                        this.conversations[convo.name_normalized] = convo;
-                    }
-                }
-                resolve();
-            }
-            catch (e) {
-                reject(e);
-            }
-        }));
+        try {
+            this._slack = new web_api_1.WebClient(this.config.token, {
+                logLevel: web_api_1.LogLevel.ERROR,
+                rejectRateLimitedCalls: true
+            });
+        }
+        catch (e) {
+            console.error(e);
+            this._ready = Promise.reject(e.message);
+            return;
+        }
     }
     ready() {
+        if (this._ready)
+            return this._ready;
         if (this.config && this.enabled) {
+            this._ready = new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    let self = yield this._slack.auth.test();
+                    this.name = self.user;
+                    let [info, users, conversations] = yield Promise.all([
+                        this._slack.team.info().then(res => res.team),
+                        this.list('users.list', {}, 'members'),
+                        // this._slack.usergroups.list().then(res => res.usergroups), // permissions for this aren't granted to this type of bot 
+                        this.list('conversations.list', { types: 'public_channel,private_channel' }, 'channels')
+                    ]);
+                    this.info = info;
+                    this.users = users;
+                    // this.groups = <SlackUserGroup[]>usergroups;
+                    for (let convo of conversations) {
+                        if (convo.is_member) {
+                            this.conversations[convo.name_normalized] = convo;
+                        }
+                    }
+                    resolve(true);
+                }
+                catch (e) {
+                    console.error(e);
+                    reject(e);
+                }
+            }));
             return this._ready;
         }
         else {
@@ -97,9 +109,16 @@ class CustomSlack {
             }
             if (user.profile) {
                 let reg = new RegExp(`^${name}$`, 'i');
-                if (reg.test(user.profile.last_name)) {
+                if (reg.test(user.profile.last_name) || reg.test(user.profile.first_name)) {
                     return `<@${user.id}>`;
                 }
+            }
+        }
+        for (let ii = 0; ii < this.groups.length; ii++) {
+            let group = this.groups[ii];
+            let reg = new RegExp(`^${name}$`, 'i');
+            if (reg.test(group.handle) || reg.test(group.name)) {
+                return `<!subteam^${group.id}>`;
             }
         }
         return tag;
