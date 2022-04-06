@@ -108,6 +108,9 @@ class CustomSlack {
                 return `<@${user.id}>`;
             }
             if (user.profile) {
+                if (user.profile.email.toLowerCase() == name.toLowerCase()) {
+                    return `<@${user.id}>`;
+                }
                 let reg = new RegExp(`^${name}$`, 'i');
                 if (reg.test(user.profile.last_name) || reg.test(user.profile.first_name)) {
                     return `<@${user.id}>`;
