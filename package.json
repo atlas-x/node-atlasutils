@@ -8,7 +8,7 @@
   "author": "Atlas Solutions <jon@atlas-x.com>",
   "license": "MIT",
   "dependencies": {
-    "@slack/client": "^4.4.0",
+    "@slack/client": "^4.12.0",
     "@slack/web-api": "^5.11.0",
     "@types/winston": "^2.3.5",
     "lodash": "^4.17.21",
