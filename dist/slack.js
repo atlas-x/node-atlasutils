@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -7,12 +7,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const web_api_1 = require("@slack/web-api");
 const _ = require("lodash");
 const DEFAULT = {
     enabled: true,
-    token: ''
+    token: "",
 };
 class CustomSlack {
     constructor() {
@@ -27,16 +34,27 @@ class CustomSlack {
         this.name = null;
     }
     list(resource, args, key) {
+        var e_1, _a;
         return __awaiter(this, void 0, void 0, function* () {
             let results = [];
-            let done = yield this._slack.paginate(resource, args, (page) => !(page[key] && page[key].length), (accumulator, page) => {
-                if (!accumulator) {
-                    accumulator = [];
+            args = _.merge({}, args, { limit: 10000 });
+            try {
+                for (var _b = __asyncValues(this._slack.paginate(resource, args)), _c; _c = yield _b.next(), !_c.done;) {
+                    let page = _c.value;
+                    if (!(page[key] && Array.isArray(page[key]) && page[key].length)) {
+                        break;
+                    }
+                    results = results.concat(page[key]);
                 }
-                accumulator = accumulator.concat(page[key]);
-                return accumulator;
-            });
-            return done;
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (_c && !_c.done && (_a = _b.return)) yield _a.call(_b);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            return results;
         });
     }
     configure(config) {
@@ -46,13 +64,13 @@ class CustomSlack {
             return;
         }
         if (!this.config.token) {
-            this._ready = Promise.reject('token is required');
+            this._ready = Promise.reject("token is required");
             return;
         }
         try {
             this._slack = new web_api_1.WebClient(this.config.token, {
                 logLevel: web_api_1.LogLevel.ERROR,
-                rejectRateLimitedCalls: true
+                rejectRateLimitedCalls: true,
             });
         }
         catch (e) {
@@ -69,19 +87,14 @@ class CustomSlack {
                 try {
                     let self = yield this._slack.auth.test();
                     this.name = self.user;
-                    let [info, users, conversations] = yield Promise.all([
-                        this._slack.team.info().then(res => res.team),
-                        this.list('users.list', {}, 'members'),
-                        // this._slack.usergroups.list().then(res => res.usergroups), // permissions for this aren't granted to this type of bot 
-                        this.list('conversations.list', { types: 'public_channel,private_channel' }, 'channels')
-                    ]);
-                    this.info = info;
-                    this.users = users;
-                    // this.groups = <SlackUserGroup[]>usergroups;
+                    this.info = yield this._slack.team.info().then((res) => res.team);
+                    this.users = yield this.list("users.list", {}, "members");
+                    const conversations = yield this.list("conversations.list", {
+                        types: "public_channel,private_channel",
+                        exclude_archived: true,
+                    }, "channels");
                     for (let convo of conversations) {
-                        if (convo.is_member) {
-                            this.conversations[convo.name_normalized] = convo;
-                        }
+                        this.conversations[convo.name_normalized] = convo;
                     }
                     resolve(true);
                 }
@@ -94,7 +107,7 @@ class CustomSlack {
         }
         else {
             if (!this.enabled) {
-                return Promise.reject('Slack is not enabled');
+                return Promise.reject("Slack is not enabled");
             }
             return Promise.reject(`You must call '.configure' before using Slack`);
         }
@@ -111,15 +124,16 @@ class CustomSlack {
                 if (user.profile.email === name) {
                     return `<@${user.id}>`;
                 }
-                let reg = new RegExp(`^${name}$`, 'i');
-                if (reg.test(user.profile.last_name) || reg.test(user.profile.first_name)) {
+                let reg = new RegExp(`^${name}$`, "i");
+                if (reg.test(user.profile.last_name) ||
+                    reg.test(user.profile.first_name)) {
                     return `<@${user.id}>`;
                 }
             }
         }
         for (let ii = 0; ii < this.groups.length; ii++) {
             let group = this.groups[ii];
-            let reg = new RegExp(`^${name}$`, 'i');
+            let reg = new RegExp(`^${name}$`, "i");
             if (reg.test(group.handle) || reg.test(group.name)) {
                 return `<!subteam^${group.id}>`;
             }
@@ -134,30 +148,30 @@ class CustomSlack {
             }
             let res = yield this._slack.chat.postMessage({
                 text,
-                channel: this.conversations[channel].id
+                channel: this.conversations[channel].id,
             });
             return res;
         });
     }
-    logError(channel, error, title = 'error') {
+    logError(channel, error, title = "error") {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.ready();
             if (!this.conversations[channel]) {
                 return Promise.reject(`Could not find #${channel} (maybe ${this.name} is not invited?)`);
             }
-            let filename = `${(new Date()).toISOString()} ${title}.log`;
+            let filename = `${new Date().toISOString()} ${title}.log`;
             let res = yield this._slack.files.upload({
                 channels: this.conversations[channel].id,
                 filename,
                 content: error,
-                filetype: 'javascript'
+                filetype: "javascript",
             });
             return res;
         });
     }
 }
 exports.CustomSlack = CustomSlack;
-// layer of abstraction because configuring after requiring causes some 
+// layer of abstraction because configuring after requiring causes some
 // messy issues when testing / configuring more than once
 class Slack {
     constructor(config) {

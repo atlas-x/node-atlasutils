@@ -1,14 +1,17 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "target": "es6",
     "noImplicitAny": false,
     "sourceMap": false,
     "declaration": true,
     "outDir": "./dist",
-    "lib":[
-      "es5", "es6", "es7", "esnext.asynciterable"
+    "lib": [
+      "es5",
+      "es6",
+      "es7",
+      "esnext.asynciterable"
     ]
   },
   "exclude": [

@@ -1,5 +1,5 @@
-import { WebAPICallResult } from '@slack/web-api';
-import { SlackMember, SlackUserGroup } from './slack-extensions';
+import { WebAPICallResult } from "@slack/web-api";
+import { SlackMember, SlackUserGroup } from "./slack-extensions";
 export interface SlackConfig {
     enabled?: boolean;
     token?: string;
@@ -14,7 +14,7 @@ export declare class CustomSlack {
     private _slack;
     info: any;
     name: string;
-    list(resource: string, args: any, key: string): Promise<any>;
+    list(resource: string, args: any, key: string): Promise<any[]>;
     configure(config: any): void;
     ready(): Promise<string | void>;
     tagUser(name: string): string;

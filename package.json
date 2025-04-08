@@ -8,8 +8,7 @@
   "author": "Atlas Solutions <jon@atlas-x.com>",
   "license": "MIT",
   "dependencies": {
-    "@slack/client": "^4.4.0",
-    "@slack/web-api": "^5.11.0",
+    "@slack/web-api": "^5.15.0",
     "@types/winston": "^2.3.5",
     "lodash": "^4.17.21",
     "moment": "^2.22.2",
@@ -20,10 +19,10 @@
   },
   "devDependencies": {
     "@types/jest": "^23.3.1",
-    "@types/node": "^10.17.18",
+    "@types/node": "^10.17.60",
     "jest": "^23.5.0",
     "ts-jest": "^23.1.4",
-    "ts-node": "^8.2.0",
+    "ts-node": "^10.9.2",
     "typescript": "^3.5.1"
   },
   "scripts": {
@@ -38,14 +37,15 @@
     },
     "clearMocks": true,
     "testPathIgnorePatterns": [
-      "\\node_modules\\",
-      "\\dist\\"
+      "/node_modules/",
+      "/dist/"
     ],
     "testRegex": "\\.(test|spec)\\.(js|ts)$",
     "moduleFileExtensions": [
       "ts",
       "js"
     ],
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "testTimeout": 15000
   }
 }
