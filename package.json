@@ -1,10 +1,10 @@
 {
-  "name": "atlasutils",
+  "name": "@atlas-x/atlasutils",
   "version": "1.5.4-1",
   "description": "Modules for use in Atlas node projects",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "repository": "https://github.com/atlas-x/node-atlasutils",
+  "repository": "https://github.com/atlas-x/node-atlasutils.git",
   "author": "Atlas Solutions <jon@atlas-x.com>",
   "license": "MIT",
   "dependencies": {
@@ -30,6 +30,9 @@
     "build": "tsc",
     "start": "tsc -w",
     "prepublish": "npm run build"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "jest": {
     "transform": {
